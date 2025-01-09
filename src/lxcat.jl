@@ -134,7 +134,7 @@ function load_lxcat(fnames, densities, energy;
 end
 
 """
-    Prepare a photo-emission process.
+Prepare a photo-emission process.
 """
 function prepare_photo_emission(itm, dens)
 end

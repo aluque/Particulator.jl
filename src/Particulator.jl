@@ -26,7 +26,7 @@ include("population.jl")
 include("mixed_population.jl")
 include("collisions.jl")
 include("electron.jl")
-include("photon.jl")
+include("zphoton.jl")
 include("lxcat.jl")
 
 end

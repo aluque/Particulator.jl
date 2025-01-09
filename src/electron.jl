@@ -46,7 +46,7 @@ const d2 = w0
 const d3 = d1
 
 """
-    Yoshida 4th order integrator.
+Yoshida 4th order integrator.
 """
 @inline function advance_free_yoshida(p::ElectronState, efield, Δt)
     x1 = p.x + c1 * Δt * p.v

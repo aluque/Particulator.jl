@@ -1,5 +1,5 @@
 """ 
-    Sample points from the unitary sphere. 
+Sample points from the unitary sphere. 
 """
 function randsphere()
     ϕ = 2π * rand()
@@ -12,13 +12,13 @@ function randsphere()
 end
 
 """
-    Sample the next collision time for a particle with unit collision rate.
+Sample the next collision time for a particle with unit collision rate.
 """
 nextcoll() = -log(rand())
 
 
 """
-    Return the index and weight of the item before `x` in a range `r`.
+Return the index and weight of the item before `x` in a range `r`.
 """
 function indweight(r::AbstractRange, x)
     #i = searchsortedlast(r, x)

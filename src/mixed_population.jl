@@ -1,5 +1,5 @@
 """
-    A mixed population, composed of multiple particle types.
+A mixed population, composed of multiple particle types.
 """
 struct MultiPopulation{TP <: NamedTuple}
     # index is a named tuple that connects particle types with their population
@@ -18,8 +18,8 @@ Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 
 
 """
-    Advance the particles in the population performing, if needed, intermediate
-    collisions.
+Advance the particles in the population performing, if needed, intermediate
+collisions.
 """
 function advance!(mpopl, efield, Δt, tracker=VoidCollisionTracker())
     # WARN: Possibly type-unstable

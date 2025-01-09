@@ -4,7 +4,7 @@ struct NullCollision <: CollisionProcess end
 
 abstract type AbstractCollisionTable{T, C <: Tuple}; end
 """
-    Struct with a set of collisions evaluated at the same energy grid.
+Struct with a set of collisions evaluated at the same energy grid.
 """
 @kwdef struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
                                A <: AbstractMatrix{T}} <: AbstractCollisionTable{T, C}
@@ -26,7 +26,7 @@ Base.length(c::CollisionTable) = length(c.proc)
 maxrate(c::CollisionTable) = c.maxrate
 maxenergy(c::CollisionTable) = c.energy[end]
 
-# Checking for collisions involves many tests but some computations are common
+# Checking for collisions involves many tests but some computations are
 # common to all of them. Here we store them in a generic way. energy is passed
 # as an optimization.
 presample(c::CollisionTable, state, energy) = indweight(c.energy, energy)
@@ -154,7 +154,7 @@ track(::AbstractCollisionTracker, outcome::AbstractOutcome) = nothing
 indweight(colls::CollisionTable, E) = indweight(colls.energy, E)
 
 """
-    Sample one (possibly null) collision.
+Sample one (possibly null) collision.
 """    
 @generated function do_one_collision!(mpopl, colls::AbstractCollisionTable{T, C}, state, i, tracker) where {T, C}
     L = fieldcount(C)

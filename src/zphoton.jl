@@ -3,12 +3,12 @@
   absorption rate between two maxima and a uniform probability in log space.
 =#
 
-const ZPhoton = ParticleType{:zphoton}
+const Photon = ParticleType{:photon}
 
 " Charge in units of the elementary charge. "
-charge(::Type{ZPhoton}) = 0
+charge(::Type{Photon}) = 0
 
-struct ZPhotonState{T} <: ParticleState{T}
+struct PhotonState{T} <: ParticleState{T}
     x::SVector{3, T}
     v::SVector{3, T}
     ν::T
@@ -17,10 +17,10 @@ struct ZPhotonState{T} <: ParticleState{T}
     active::Bool
 end
 
-particle_type(::Type{ZPhotonState{T}}) where T = ZPhoton
+particle_type(::Type{PhotonState{T}}) where T = Photon
 
 # Currently we do not use the energy anywhere
-energy(::ZPhotonState) = nothing
+energy(::PhotonState) = nothing
 
 struct PhotoIonization; end
 
@@ -42,7 +42,7 @@ rate(c::ZhelezniakCollisions, j, ν) = ν
 maxrate(c::ZhelezniakCollisions) = c.νmax
 
 
-function collide(c::PhotoIonization, p::ZPhotonState{T}, energy) where T
+function collide(c::PhotoIonization, p::PhotonState{T}, energy) where T
     # The electron starts with 0 velocity
     v  = zero(SVector{3, Float64})
 
@@ -51,6 +51,6 @@ function collide(c::PhotoIonization, p::ZPhotonState{T}, energy) where T
 end
 
 
-@inline function advance_free(p::ZPhotonState, efield, Δt)
-    ZPhotonState(p.x .+ Δt .* p.v, p.v, p.ν, p.w, p.s, p.active)
+@inline function advance_free(p::PhotonState, efield, Δt)
+    PhotonState(p.x .+ Δt .* p.v, p.v, p.ν, p.w, p.s, p.active)
 end

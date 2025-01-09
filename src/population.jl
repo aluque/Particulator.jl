@@ -19,9 +19,9 @@ instantiate(ps::LazyRow{P}) where P <: ParticleState = getfield(ps, 1)[getfield(
 
 
 """
-    Initialize a population with space to contain `max_particles`,
-    starting with a vector of super-particle states.
-    The collision table must be also given in `collisions`.
+Initialize a population with space to contain `max_particles`,
+starting with a vector of super-particle states.
+The collision table must be also given in `collisions`.
 """
 function Population(max_particles::Int, inparticles::Vector{PS},
                     collisions) where PS <: ParticleState
@@ -69,7 +69,7 @@ eachparticle(popl::Population) = LazyRows(view(popl.particles, 1:popl.n[]))
 eachactive(popl::Population) = ActiveParticleIterator(popl)
 
 """
-    Return number of active particles in the population.
+Return number of active particles in the population.
 """
 function nactives(popl::Population)
     n = 0
@@ -83,7 +83,7 @@ end
 
 
 """
-    Add a particle to the population `popl` with super-state super_state.
+Add a particle to the population `popl` with super-state super_state.
 """
 function add_particle!(popl::Population, state::ParticleState)
     (;n, particles, collisions) = popl
@@ -98,8 +98,8 @@ end
 
 
 """ 
-    Remove particle `i` from the population `popl` by setting its `active` flag
-    to false
+Remove particle `i` from the population `popl` by setting its `active` flag
+to false
 """
 function remove_particle!(popl::Population, i::Integer)
     LazyRow(popl.particles, i).active = false
@@ -109,7 +109,7 @@ end
 _particle_state_type_param(::Type{<:ParticleState{T}}) where T = T
 
 """
-    Compute the total weight of a population `popl`.
+Compute the total weight of a population `popl`.
 """
 function weight(popl::Population{PS}) where PS
     T = _particle_state_type_param(PS)
@@ -125,13 +125,13 @@ end
 
 
 """
-    Compute the number of active particles in a population `pop`.
+Compute the number of active particles in a population `pop`.
 """
 actives(popl) = count(p -> p.active, eachparticle(popl))
 
 
 """
-    Compute the mean energy of a population `popl`.
+Compute the mean energy of a population `popl`.
 """
 function meanenergy(popl::Population{PS}) where PS
     T = _particle_state_type_param(PS)
@@ -151,7 +151,7 @@ end
 
 
 """
-   Compute the highest energy of a population `popl`.
+Compute the highest energy of a population `popl`.
 """
 function maxenergy(popl::Population{PS}) where PS
     maximum(p -> energy(instantiate(p)), eachparticle(popl))
@@ -159,7 +159,7 @@ end
 
 
 """
-    Compute the centroid and deviation of a population `popl`.
+Compute the centroid and deviation of a population `popl`.
 """
 function spread(popl::Population{PS}) where PS
     T = _particle_state_type_param(PS)
@@ -186,7 +186,6 @@ end
 """
 Reorders the particles in the population `popl` to have all active particle 
 at the initial positions in the list.
-
 """
 function repack!(popl::Population)
     # last active
@@ -216,8 +215,8 @@ end
 
 
 """ 
-    Shuffle a population using a permutation sampled from a uniform distribution
-    of permutations.
+Shuffle a population using a permutation sampled from a uniform distribution
+of permutations.
 """
 function shuffle!(popl::Population)
     for i in nparticles(popl):-1:2
