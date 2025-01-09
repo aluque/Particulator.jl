@@ -6,7 +6,7 @@ abstract type AbstractCollisionTable{T, C <: Tuple}; end
 """
     Struct with a set of collisions evaluated at the same energy grid.
 """
-@with_kw struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
+@kwdef struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
                                A <: AbstractMatrix{T}} <: AbstractCollisionTable{T, C}
     "Each type of collision"
     proc::C

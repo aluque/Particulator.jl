@@ -1,12 +1,10 @@
 module Particulator
 
 using Base.Threads: Atomic, @threads, atomic_add!
-using Parameters
 using LinearAlgebra
 using StaticArrays
 using Interpolations
 using Polyester
-using LoopVectorization
 using StructArrays
 using DocStringExtensions
 using Distributions
