@@ -33,7 +33,7 @@ include("electron.jl")
 include("relativistic_coulomb.jl")
 include("rbeb.jl")
 include("slow-electron.jl")
-include("zphoton.jl")
+include("zhelezniak_photon.jl")
 include("lxcat.jl")
 
 end
