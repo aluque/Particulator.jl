@@ -152,4 +152,11 @@ const ϵ₀                       = 8.854187817620389e-12
 const ϵ0                       = 8.854187817620389e-12   
 const μ₀                       = 1.2566370614359173e-06  
 const μ0                       = 1.2566370614359173e-06  
+
+# Classical electron radius, about 2.8e-15 m
+const r_e = elementary_charge^2 / (electron_mass * c^2) / (4π * epsilon_0)
+
+# Bohr radius
+const a_0 = hbar / (electron_mass * c * fine_structure)
+
 end
