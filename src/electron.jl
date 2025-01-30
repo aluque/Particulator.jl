@@ -1,11 +1,15 @@
 #
-# Non-relativistic dynamics
+# Relativistic dynamics
 #
 const Electron = ParticleType{:electron}
 
-" Charge in units of the elementary charge. "
-charge(::Type{Electron}) = -1
+# Classical electron radius, about 2.8e-15 m
+const r_e = co.elementary_charge^2 / (co.electron_mass * co.c^2) / (4π * co.epsilon_0)
 
+# Bohr radius
+const a_0 = co.hbar / (co.electron_mass * co.c * co.fine_structure)
+
+    
 struct ElectronState{T} <: ParticleState{T}
     x::SVector{3, T}
     v::SVector{3, T}
@@ -22,11 +26,39 @@ new_particle(::Type{Electron}, x, v) = ElectronState(x, v, 1.0, nextcoll(), true
 mass(p::ElectronState) = co.electron_mass
 mass(::Type{Electron}) = co.electron_mass
 mass(::Electron) = co.electron_mass
-charge(p::ElectronState) = -co.elementary_charge
+" Charge in units of the elementary charge. "
+charge(::Type{Electron}) = -1
+charge(::ElectronState) = -1
 
-energy(p::ElectronState) = 0.5 * mass(p) * (p.v[1]^2 + p.v[2]^2 + p.v[3]^2)
+gamma(p::ElectronState) = 1 / (sqrt(1 - dot(p.v, p.v) / co.c^2))
+momentum(p::ElectronState) = gamma(p) * mass(p) * p.v
 
-@inline function advance_free_leapfrog(p::ElectronState, efield, Δt)
+# Only kinetic energy
+energy(p::ElectronState) = (gamma(p) - 1) * mass(p) * co.c^2
+
+@inline function advance_free_boris(p::ElectronState, efield, bfield, Δt)
+    γ = gamma(p)
+    u = γ * p.v
+    q = co.elementary_charge * charge(p)
+    m = mass(p)
+    
+    u1 = u + ((q * Δt) / 2m) * efield(p.x)
+    γB = sqrt(1 + dot(u1, u1) / co.c^2)
+
+    Ω = (q / m) * bfield(p.x)
+    u2 = ((1 - (norm(Ω) * Δt / 2γB)^2) * u1
+          + cross(u1, Ω * Δt)
+          + ((Δt / γB)^2 / 2) * dot(u1, Ω) * Ω) / (1 + (norm(Ω) * Δt / 2γB)^2)
+
+    uf = u2 + ((q * Δt) / 2m) * efield(p.x)
+    γf = sqrt(1 + dot(uf, uf) / co.c^2)
+    v1 = uf / γf
+
+    ElectronState(p.x + Δt * v1, v1, p.w, p.s, p.active)
+end
+
+# Use only if B = 0
+@inline function advance_free_leapfrog(p::ElectronState, efield, bfield, Δt)
     # Leapfrog integration. Note that x and v are not synchronous.
     Δv = -(Δt * co.elementary_charge / mass(p)) .* efield(p.x)
     v1 = p.v .+ Δv
@@ -47,8 +79,9 @@ const d3 = d1
 
 """
 Yoshida 4th order integrator.
+Use only if B = 0.
 """
-@inline function advance_free_yoshida(p::ElectronState, efield, Δt)
+@inline function advance_free_yoshida(p::ElectronState, efield, bfield, Δt)
     x1 = p.x + c1 * Δt * p.v
     v1 = p.v + d1 * Δt * (charge(p) / mass(p)) * efield(x1)
     x2 = x1 + c2 * Δt * v1
@@ -61,84 +94,5 @@ Yoshida 4th order integrator.
     ElectronState(x4, v4, p.w, p.s, p.active)
 end
 
-@inline advance_free(p::ElectronState, efield, Δt) = advance_free_yoshida(p, efield, Δt)
+@inline advance_free(p::ElectronState, efield, bfield, Δt) = advance_free_boris(p, efield, bfield, Δt)
 
-
-#
-# Collisional processes and collision outcomes
-#
-struct Excitation{T} <: CollisionProcess
-    threshold::T
-end
-
-struct Ionization{T} <: CollisionProcess
-    threshold::T
-end
-
-struct Attachment{T} <: CollisionProcess
-    threshold::T
-end
-
-struct Elastic{T} <: CollisionProcess
-    mass_ratio::T
-end
-
-# This photo-emission. The energy loss and ionization are already included in
-# other processes, so this only creates a new photon.
-struct PhotoEmission{T} <: CollisionProcess;
-    log_νmin::T
-    log_νmax::T
-
-    # `photon_multiplier` is used to produce a smoother distribution of photons.
-    # The cross-section is multiplied by this factor and the weight is divided
-    # by it.
-    photon_multiplier::T
-
-    # This is to reduce noise even beyond real physical noise, which can be
-    # useful for comparing with fluid simulations.
-    photon_weight::T
-    
-    function PhotoEmission(νmin, νmax, weight_scale, photon_weight)
-        lmin, lmax = promote(log(νmin), log(νmax))
-        new{typeof(lmin)}(lmin, lmax, weight_scale, photon_weight)
-    end
-end
-
-
-function collide(c::Excitation, p::ElectronState{T}, energy) where T
-    E1 = max(0, energy - c.threshold)
-    vabs = sqrt(2 * E1 / mass(p))
-    v1 = randsphere() .* vabs
-
-    StateChangeOutcome(ElectronState{T}(p.x, v1, p.w, p.s, p.active))
-end
-
-function collide(c::Ionization, p::ElectronState{T}, energy) where T
-    # Energy equipartitiom
-    E1 = max(0, energy - c.threshold) / 2
-    vabs = sqrt(2 * E1 / mass(p))
-
-    v  = randsphere() .* vabs
-    v1 = randsphere() .* vabs
-
-    p1 = ElectronState{T}(p.x,  v, p.w, p.s, p.active)
-    p2 = ElectronState{T}(p.x, v1, p.w, nextcoll(), p.active)
-    NewParticleOutcome(p1, p2)
-end
-
-function collide(c::Attachment, p::ElectronState, energy)
-    RemoveParticleOutcome(p)
-end
-
-function collide(c::Elastic, p::ElectronState{T}, energy) where T
-    # Velocity in the center-of-mass frame
-    v_cm = (c.mass_ratio / (1 + c.mass_ratio)) .* p.v
-    v_final = randsphere() .* norm(p.v - v_cm) .+ v_cm
-
-    StateChangeOutcome(ElectronState{T}(p.x, v_final, p.w, p.s, p.active))
-end
-
-function collide(c::PhotoEmission, p::ElectronState{T}, energy) where T
-    nphot = rand(Poisson(p.w / c.photon_multiplier / c.photon_weight))
-    MultiplePhotonOutcome(nphot, p, c)
-end
