@@ -21,7 +21,7 @@ Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 Advance the particles in the population performing, if needed, intermediate
 collisions.
 """
-function advance!(mpopl, efield, Δt, tracker=VoidCollisionTracker())
+function advance!(mpopl, efield, bfield, Δt, tracker=VoidCollisionTracker())
     # WARN: Possibly type-unstable
     for (sym, popl) in pairs(mpopl)
         @batch for i in 1:popl.n[]
@@ -40,7 +40,7 @@ function advance!(mpopl, efield, Δt, tracker=VoidCollisionTracker())
                     l.s -= t * maxrate(popl.collisions)
                 end
                 state = instantiate(l)
-                new_state = advance_free(state, efield, t)
+                new_state = advance_free(state, efield, bfield, t)
                 popl.particles[i] = new_state
 
                 if collides

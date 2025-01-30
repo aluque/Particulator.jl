@@ -1,4 +1,7 @@
 module Particulator
+export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
+    NullCollision, ElectronState, Population, ORBITALS, advance!, remove_particle!,
+    repack!, energy, nparticles, AbstractCollisionTracker, track
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
@@ -8,6 +11,7 @@ using Polyester
 using StructArrays
 using DocStringExtensions
 using Distributions
+using LambertW
 
 import JSON
 
@@ -26,6 +30,9 @@ include("population.jl")
 include("mixed_population.jl")
 include("collisions.jl")
 include("electron.jl")
+include("relativistic_coulomb.jl")
+include("rbeb.jl")
+include("slow-electron.jl")
 include("zphoton.jl")
 include("lxcat.jl")
 

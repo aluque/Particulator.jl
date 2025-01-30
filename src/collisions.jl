@@ -3,6 +3,7 @@ abstract type CollisionProcess end
 struct NullCollision <: CollisionProcess end
 
 abstract type AbstractCollisionTable{T, C <: Tuple}; end
+
 """
 Struct with a set of collisions evaluated at the same energy grid.
 """
@@ -24,7 +25,7 @@ end
 Base.length(c::CollisionTable) = length(c.proc)
 
 maxrate(c::CollisionTable) = c.maxrate
-maxenergy(c::CollisionTable) = c.energy[end]
+maxenergy(c::CollisionTable) = last(c.energy)
 
 # Checking for collisions involves many tests but some computations are
 # common to all of them. Here we store them in a generic way. energy is passed
@@ -37,6 +38,7 @@ function rate(c::CollisionTable, j, pre)
 
     return w * c.rate[j, k] + (1 - w) * c.rate[j, k + 1]
 end
+
 
 
 #
@@ -148,7 +150,7 @@ end
 abstract type AbstractCollisionTracker end
 struct VoidCollisionTracker <: AbstractCollisionTracker end
 
-track(::AbstractCollisionTracker, outcome::AbstractOutcome) = nothing
+track(::AbstractCollisionTracker, collision, outcome) = nothing
 
 
 indweight(colls::CollisionTable, E) = indweight(colls.energy, E)
@@ -171,15 +173,16 @@ Sample one (possibly null) collision.
     for j in 1:L
         push!(out.args,
               quote
-              ν = rate(colls, $j, pre)
-              if ν > ξ                  
-                  outcome = collide(colls.proc[$j], state, eng)
-                  track(tracker, outcome)
-                  apply!(mpopl, outcome, i)
-                  return
-              else
-                  ξ -= ν
-              end
+                  ν = rate(colls, $j, pre)
+                  if ν > ξ                      
+                      #$j > 1 && @show eng/co.eV colls.proc[$j]
+                      outcome = collide(colls.proc[$j], state, eng)
+                      track(tracker, colls.proc[$j], outcome)
+                      apply!(mpopl, outcome, i)
+                      return
+                  else
+                      ξ -= ν
+                  end
               end)
     end
     

@@ -37,3 +37,5 @@ variables: `w`: particle weight, `s` normalized time to next collision,
 abstract type ParticleState{T}; end
 
 Base.eltype(p::ParticleState{T}) where {T} = T
+
+energy(p) = energy(instantiate(p))
