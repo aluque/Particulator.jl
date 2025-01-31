@@ -1,56 +1,42 @@
-#=
-  This is the implementation of a "Zhelezniak" photon: a photon with a random
-  absorption rate between two maxima and a uniform probability in log space.
-=#
+#
+# Relativistic dynamics
+#
+const Photon = ParticleType{:photon}
 
-const ZPhoton = ParticleType{:zphoton}
-
-" Charge in units of the elementary charge. "
-charge(::Type{ZPhoton}) = 0
-
-struct ZPhotonState{T} <: ParticleState{T}
+struct PhotonState{T} <: ParticleState{T}
+    "Photon position"
     x::SVector{3, T}
-    v::SVector{3, T}
-    ν::T
+
+    "Photon momentum"
+    p::SVector{3, T}
+
+    "Seight"
     w::T
+
+    "Normalized time to collision"
     s::T    
+
+    "Active flag"
     active::Bool
 end
 
-particle_type(::Type{ZPhotonState{T}}) where T = ZPhoton
+PhotonState(x, p, w=1.0, s=nextcoll(), active=true) = PhotonState(x, p, w, s, active)
 
-# Currently we do not use the energy anywhere
-energy(::ZPhotonState) = nothing
+particle_type(::Type{PhotonState{T}}) where T = Photon
+new_particle(::Type{Photon}, x, p) = PhotonState(x, p, 1.0, nextcoll(), true)
 
-struct PhotoIonization; end
+mass(p::PhotonState) = 0
+mass(::Type{Photon}) = 0
+mass(::Photon) = 0
+" Charge in units of the elementary charge. "
+charge(::Type{Photon}) = 0
+charge(::PhotonState) = 0
 
-struct ZhelezniakCollisions{T, C} <: AbstractCollisionTable{T, C}
-    proc::C
+gamma(p::PhotonState) = Inf
+momentum(p::PhotonState) = p.p
+energy(p::PhotonState) = norm(p.p) * co.c
 
-    νmax::T
-
-    function ZhelezniakCollisions(νmax::T) where T
-        proc = (PhotoIonization(),)
-
-        new{T, typeof(proc)}(proc, νmax)
-    end
-end
-
-presample(c::ZhelezniakCollisions, state, energy) = state.ν
-rate(c::ZhelezniakCollisions, j, ν) = ν
-
-maxrate(c::ZhelezniakCollisions) = c.νmax
-
-
-function collide(c::PhotoIonization, p::ZPhotonState{T}, energy) where T
-    # The electron starts with 0 velocity
-    v  = zero(SVector{3, Float64})
-
-    pe = ElectronState{T}(p.x,  v, p.w, nextcoll(), p.active)
-    ReplaceParticleOutcome(p, pe)
-end
-
-
-@inline function advance_free(p::ZPhotonState, efield, Δt)
-    ZPhotonState(p.x .+ Δt .* p.v, p.v, p.ν, p.w, p.s, p.active)
+@inline function advance_free(p::PhotonState, efield, bfield, Δt)
+    v = (co.c / norm(p.p)) * p.p
+    PhotonState(p.x + Δt * v, p.p, p.w, p.s, p.active)
 end
