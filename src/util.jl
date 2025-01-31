@@ -34,10 +34,10 @@ end
 
 
 """ 
-Find a vector with the same norm as `u` but deviated with inclination `θ` and azimuth
+Find a vector with norm `n` (defaults to `norm(u)`) but deviated with inclination `θ` and azimuth
 `ϕ` with respect to u.  For performance, the passed parameter is `cosθ` instead of `θ`.
 """
-@inline @fastmath function turn(u, cosθ, ϕ)
+@inline @fastmath function turn(u, cosθ, ϕ, n=norm(u))
     μ = u / norm(u)
     sinϕ, cosϕ = sincos(ϕ)
     
@@ -51,7 +51,7 @@ Find a vector with the same norm as `u` but deviated with inclination `θ` and a
     μ1y = sinθ * b(μ[2],  μ[1], μ[3]) / s + μ[2] * cosθ
     μ1z = -s * sinθ * cosϕ + μ[3] * cosθ
 
-    v = norm(u) * SA[μ1x, μ1y, μ1z]
+    v = n * SA[μ1x, μ1y, μ1z]
 
     return v
 end

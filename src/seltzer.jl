@@ -50,6 +50,34 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
     end
 end
 
+
+function collide(c::SeltzerBerger, electron::ElectronState{T}, eng) where T
+    mc2 = co.electron_mass * co.c^2
+    m2c4 = mc2^2
+    
+    k = sample_secondary_energy(sb, eng)
+    # Photom momentum magnitude
+    photon_p_norm = k / co.c
+        
+    cosθ = sample_photon_cos_theta(sb, eng)
+    ϕ = 2π * rand()
+    
+    # Photon momentum
+    p_ph = turn(electron.v, cosθ, ϕ, photon_p_norm)
+
+    # Electron momentum
+    p0 = momentum(electron)
+    p_e = p0 - p_ph
+    γ2 = (1 + dot(p_e, p_e) / m2c4)
+    β = sqrt(1 - 1 / γ2)
+    v_e = co.c * β * p_e / norm(p_e)
+    
+    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.s, electron.active),
+                       PhotonState{T}(electron.x, p_ph, electron.w, electron.s, electron.active))
+end
+
+
+
 """
 Sample energy of secundary from primary kinetic energy `T` using the data in `sb`.
 """
