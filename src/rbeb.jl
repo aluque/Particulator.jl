@@ -29,7 +29,7 @@ N2_ORBITALS = [
     RBEB(0.4095e3 * co.eV,   0.6033e3 * co.eV, 4),
     
     # Hwang at al. J. Chem. Phys. 104, 2956 (1996) for molecular orbitals
-    RBEB(41.72 * co.eV,    71.3 * co.eV,    2),
+    RBEB(41.72 * co.eV,    71.13 * co.eV,    2),
     RBEB(21.00 * co.eV,    63.18 * co.eV,   2),
     RBEB(17.07 * co.eV,    44.30 * co.eV,   4),
     RBEB(15.58 * co.eV,    54.91 * co.eV,   2)]
