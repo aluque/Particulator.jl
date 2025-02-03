@@ -38,7 +38,7 @@ O2_ORBITALS = [
     # B (eV)   U (eV)   N
     # Santos J. Phys. B: At. Mol. Opt. Phys. 36 (2003) 4211–4224 for K-Shell orbitals
     # 4 electrons (2 in each atomic 1s orbital)
-    RBEB(0.5438e3 * co.eV,   0.6033e3 * co.eV, 4),
+    RBEB(0.5438e3 * co.eV,   0.7962e3 * co.eV, 4),
 
     # Hwang at al. J. Chem. Phys. 104, 2956 (1996) for molecular orbitals
     RBEB(46.19 * co.eV,    79.73 * co.eV,   2),
