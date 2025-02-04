@@ -16,42 +16,47 @@ Base.get(mp::MultiPopulation, pt::Type{ParticleType{S}}) where S = getfield(mp.i
 Base.map(f, mp::MultiPopulation) = map(f, mp.index)
 Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 
+function advance!(mpopl, efield, bfield, Δt, tracker=VoidCollisionTracker())
+    advance1!(mpopl.index, mpopl, efield, bfield, Δt, tracker)
+end
 
 """
 Advance the particles in the population performing, if needed, intermediate
 collisions.
 """
-function advance!(mpopl, efield, bfield, Δt, tracker=VoidCollisionTracker())
-    # WARN: Possibly type-unstable
-    for (sym, popl) in pairs(mpopl)
-        @batch for i in 1:popl.n[]
-            l = LazyRow(popl.particles, i)
-            l.active || continue
-
-            trem = Δt
-            while trem > 0
-                tnextcoll = l.s / maxrate(popl.collisions)
-                if trem > tnextcoll
-                    t = tnextcoll
-                    collides = true
-                else
-                    t = trem
-                    collides = false
-                    l.s -= t * maxrate(popl.collisions)
-                end
-                state = instantiate(l)
-                new_state = advance_free(state, efield, bfield, t)
-                popl.particles[i] = new_state
-
-                if collides
-                    do_one_collision!(mpopl, popl.collisions, new_state, i, tracker)
-                    l.s = nextcoll()
-                end
-                trem -= t
+function advance1!(tpl::NamedTuple, mpopl, efield, bfield, Δt, tracker=VoidCollisionTracker())
+    popl = first(tpl)
+    @batch for i in 1:popl.n[]
+        l = LazyRow(popl.particles, i)
+        l.active || continue
+        
+        trem = Δt
+        while trem > 0
+            tnextcoll = l.s / maxrate(popl.collisions)
+            if trem > tnextcoll
+                t = tnextcoll
+                collides = true
+            else
+                t = trem
+                collides = false
+                l.s -= t * maxrate(popl.collisions)
             end
+            state = instantiate(l)
+            new_state = advance_free(state, efield, bfield, t)
+            popl.particles[i] = new_state
+            
+            if collides
+                do_one_collision!(mpopl, popl.collisions, new_state, i, tracker)
+                l.s = nextcoll()
+            end
+            trem -= t
         end
     end
+
+    advance1!(Base.tail(tpl), mpopl, efield, bfield, Δt, tracker)
 end
+
+advance1!(tpl::NamedTuple{()}, mpopl, efield, bfield, Δt, tracker=VoidCollisionTracker()) = nothing
 
 
 """
