@@ -154,3 +154,5 @@ function RawG4Physics2DVector{T}(io::IO) where T
 
     return RawG4Physics2DVector{T}(k, nx, ny, x, y, value)
 end
+
+RawG4Physics2DVector{T}(fname::AbstractString) where T = open(io->RawG4Physics2DVector{T}(io), fname)
