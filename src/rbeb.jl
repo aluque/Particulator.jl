@@ -184,7 +184,7 @@ function _rbeb_sample(b1, t, t1, βt2)
     A = -(1 + 2 * t1) / (t + 1) / (1 + t1)^2
     B = 1
     C = (log(βt2 / (1 - βt2)) - βt2 - log(2 * b1))
-    M = b1 / (1 + t1)^2
+    M = b1^2 / (1 + t1)^2
 
     accept = false
 
