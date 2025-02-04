@@ -37,7 +37,7 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
 
             logk = log.(k)
             data[:, i] = findcumvalues(logk, d.value[i, :], pcum, log(gamma_min), log(gamma_max))
-            totalcs[i] = ((β^2 / Z^2) * 1e-31 *
+            totalcs[i] = ((Z^2 / β^2) * 1e-31 *
                 scaledcs(logk, d.value[i, :], log(gamma_min), log(gamma_max)))
         end
         
@@ -45,13 +45,24 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
     end
 
     function SeltzerBerger(T, fname::AbstractString, pcum::V, Z; kw...) where V
-        d = Seltzer.RawG4Physics2DVector{T}(fname)
+        d = RawG4Physics2DVector{T}(fname)
         SeltzerBerger(d, pcum, Z; kw...)
     end
+
+    function SeltzerBerger(T, Z::Int, pcum::V; kw...) where V
+        fname = joinpath(DATA_DIR, "brem_SB", "br$(Z)")
+        
+        SeltzerBerger(T, fname, pcum, Z; kw...)
+    end
+
+    SeltzerBerger(fname::AbstractString, args...; kw...) = SeltzerBerger(Float64, fname, args...; kw...)
+    SeltzerBerger(Z::Int, args...; kw...) = SeltzerBerger(Float64, Z, args...; kw...)
 end
 
 
-function collide(c::SeltzerBerger, electron::ElectronState{T}, eng) where T
+function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
+    @info "Bremsstrahlung!"
+    
     mc2 = co.electron_mass * co.c^2
     m2c4 = mc2^2
     
@@ -172,16 +183,16 @@ Find the values of `x` for which the cumulative probability of a given (unnormal
 density `p` reach the values in `pcum`. Store the results in `s`
 """
 function findcumvalues!(s, x, p, pcum, xmin, xmax; rtol=1e-6)
-    itp = interpolate(x, p, BSplineOrder(2))
+    itp = BSplineKit.interpolate(x, p, BSplineOrder(2))
     cumint = integral(itp)
-    @assert all(itp.(knots(itp)) .> 0)
+    @assert all(itp.(BSplineKit.knots(itp)) .> 0)
 
     # Data points to normalize the comumative distribution as 0 for kmin, 1 for kmax
     cum0 = cumint(max(xmin, minimum(x)))
     cum1 = cumint(min(xmax, maximum(x)))
 
     deriv = diff(cumint)
-    knt = knots(cumint)
+    knt = BSplineKit.knots(cumint)
     fknt = @. ((cumint(knt) - cum0) / (cum1 - cum0))
 
     for i in eachindex(pcum)
@@ -210,9 +221,9 @@ Compute the total scaled cross section from tabulated `logk` values and `s` = k 
 interval (`kmax`, `kmin`).
 """
 function scaledcs(logk, s, logkmin, logkmax)
-    itp = interpolate(logk, s, BSplineOrder(2))
+    itp = BSplineKit.interpolate(logk, s, BSplineOrder(2))
     cumint = integral(itp)
-    @assert all(itp.(knots(itp)) .> 0)
+    @assert all(itp.(BSplineKit.knots(itp)) .> 0)
 
     # Data points to normalize the comumative distribution as 0 for kmin, 1 for kmax
     cum0 = cumint(max(logkmin, minimum(logk)))
@@ -227,10 +238,14 @@ Compute total cross section for bremsstrahlung process modeled by `sb` with prim
 """
 function totalcs(sb::SeltzerBerger, K)
     logK = log(K)
-
     # We allow non-uniform sampling of energies because this method is supposed to be used
     # only for initialization
     i = searchsortedlast(sb.log_energy, logK)
+    
+    if (i == 0)
+        return zero(logK)
+    end
+    
     w = (sb.log_energy[i + 1] - logK) / (sb.log_energy[i + 1] - sb.log_energy[i])
     
     return w * sb.totalcs[i] + (1 - w) * sb.totalcs[i + 1]    
