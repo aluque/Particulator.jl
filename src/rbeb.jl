@@ -70,8 +70,8 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     γ2 = 1 + (E2 / mc2)
 
     vnorm = norm(electron.v)
-    v1 = electron.v * p1 / γ1 / co.electron_mass / vnorm
-    v2 = electron.v * p2 / γ2 / co.electron_mass / vnorm
+    v1norm = p1 / γ1 / co.electron_mass
+    v2norm = p2 / γ2 / co.electron_mass
     
     # cosθ1 = (p0^2 + p1^2 - p2^2) / (2 * p0 * p1)
     # cosθ2 = (p0^2 + p2^2 - p1^2) / (2 * p0 * p2)
@@ -82,11 +82,11 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     
     ϕ = 2π * rand()
 
-    v1 = turn(v1, cosθ1, ϕ)
-    v2 = turn(v2, cosθ2, -ϕ)
+    v1 = turn(electron.v, cosθ1, ϕ, v1norm)
+    v2 = turn(electron.v, cosθ2, -ϕ, v2norm)
 
     NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.s, electron.active),
-                       ElectronState{T}(electron.x, v2, electron.w, electron.s, electron.active))
+                       ElectronState{T}(electron.x, v2, electron.w, nextcoll(), electron.active))
 end
 
 
