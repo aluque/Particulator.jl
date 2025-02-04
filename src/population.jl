@@ -1,7 +1,7 @@
 # Managing of a populations of homogeneous particles.
 
 # Population of a given particle type
-struct Population{PS <: ParticleState, C, K, I}
+struct Population{PS <: ParticleState, T, C, K, I}
     "Number of particles"
     n::Atomic{Int}
     
@@ -10,6 +10,9 @@ struct Population{PS <: ParticleState, C, K, I}
 
     "Collision table"
     collisions::C
+
+    "Energy cut of this population"
+    energy_cut::T
 end
 
 
@@ -24,7 +27,7 @@ starting with a vector of super-particle states.
 The collision table must be also given in `collisions`.
 """
 function Population(max_particles::Int, inparticles::Vector{PS},
-                    collisions) where PS <: ParticleState
+                    collisions, energy_cut=0.0) where PS <: ParticleState
     init_particles = length(inparticles)
     particles = StructVector{PS}(undef, max_particles)
 
@@ -32,7 +35,7 @@ function Population(max_particles::Int, inparticles::Vector{PS},
         particles[i] = inparticles[i]
     end
 
-    return Population(Atomic{Int}(init_particles), particles, collisions)
+    return Population(Atomic{Int}(init_particles), particles, collisions, energy_cut)
 end
 
 struct ParticleIterator{P <: Population}
@@ -87,6 +90,8 @@ Add a particle to the population `popl` with super-state super_state.
 """
 function add_particle!(popl::Population, state::ParticleState)
     (;n, particles, collisions) = popl
+    (energy(state) <= popl.energy_cut) && return n[]
+    
     @assert n[] < length(particles) "Maximum number of particles reached"
 
     nprev = atomic_add!(n, 1)
