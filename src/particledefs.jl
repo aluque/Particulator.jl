@@ -21,6 +21,7 @@ const Positron = ParticleType{:positron}
 const Photon = ParticleType{:photon}
 const Electron = ParticleType{:electron}
 
+@inline id(p::Type{ParticleType{S}}) where S = S
 @inline id(p::ParticleType{S}) where S = S
 @inline id(sym::Symbol) = sym
 

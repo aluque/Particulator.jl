@@ -6,9 +6,20 @@ abstract type AbstractCollisionTable{T, C <: Tuple}; end
 
 """
 Struct with a set of collisions evaluated at the same energy grid.
+
+The total collision rate can either be a number or another struct. It is used in the form
+
+totalrate(::CollisionTable, energy).
+
+If total rate is a number the  assumption is that the total collision rate is independent of
+energy (because the space is filled with NullCollisions).
+This is useful when the energy of the particles changes during the time-stepping.
+
+If totalrate is energy-dependent we can be more efficient for cases where the energy does not change
+during the free propagation (for example for photons).
 """
 @kwdef struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
-                               A <: AbstractMatrix{T}} <: AbstractCollisionTable{T, C}
+                             A <: AbstractMatrix{T}, TR <: Union{Vector{T}, T}} <: AbstractCollisionTable{T, C}
     "Each type of collision"
     proc::C
 
@@ -18,13 +29,25 @@ Struct with a set of collisions evaluated at the same energy grid.
     "Array with collision rates for each process."
     rate::A
 
-    "Max. collision rate"
-    maxrate::T
+    "Total collision rate, including NullCollisions"
+    totalrate::TR
 end
 
 Base.length(c::CollisionTable) = length(c.proc)
 
-maxrate(c::CollisionTable) = c.maxrate
+totalrate(c::CollisionTable, eng, pre=nothing) = totalrate(c.totalrate, c, eng, pre)
+totalrate(x::Number, c, eng, pre=nothing) = x
+
+function totalrate(v::Vector, c, eng, pre::Nothing)
+    pre = presample(c, nothing, eng)
+    totalrate(v, c, eng, pre)
+end
+
+function totalrate(v::Vector, c, eng, pre)
+    k, w = pre
+    return w * v[k] + (1 - w) * v[k + 1]
+end
+
 maxenergy(c::CollisionTable) = last(c.energy)
 
 # Checking for collisions involves many tests but some computations are
@@ -76,6 +99,14 @@ struct ReplaceParticleOutcome{PS1, PS2} <: AbstractOutcome
     state2::PS2
 end
 
+# Two new particles with states p2, p3 replace an existing particle with state state1.
+# This is e.g. a photon creates an e-/e+ pair.
+struct ReplaceParticlePairOutcome{PS1, PS2, PS3} <: AbstractOutcome
+    state1::PS1
+    state2::PS2
+    state3::PS3
+end
+
 # For Poisson photon generations we may want to generate many particles in a single
 # event. To sample them we create instances of this.
 struct MultiplePhotonOutcome{PS1, C} <: AbstractOutcome
@@ -124,6 +155,17 @@ end
     add_particle!(popl2, outcome.state2)    
 end
 
+@inline function apply!(mpopl, outcome::ReplaceParticlePairOutcome{PS1, PS2, PS3}, i) where {PS1, PS2, PS3}
+    popl1 = get(mpopl, particle_type(PS1))
+    remove_particle!(popl1, i)
+
+    popl2 = get(mpopl, particle_type(PS2))
+    add_particle!(popl2, outcome.state2)    
+
+    popl3 = get(mpopl, particle_type(PS3))
+    add_particle!(popl3, outcome.state3)    
+end
+
 @inline function apply!(mpopl, outcome::MultiplePhotonOutcome{PS1, C}, i) where {PS1, C}
     popl1 = get(mpopl, particle_type(PS1))
     popl1.particles[i] = outcome.state1
@@ -165,7 +207,7 @@ Sample one (possibly null) collision.
         $(Expr(:meta, :inline))
         eng = energy(state)
         pre = presample(colls, state, eng)
-        ξ = rand(T) * maxrate(colls)
+        ξ = rand(T) * totalrate(colls, eng, pre)
         
         #k, w = indweight(colls, energy)
     end

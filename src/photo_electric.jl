@@ -16,7 +16,7 @@ struct PhotoElectric{T}
     # avoid that complication.
     binding::Vector{T}
 
-    function PhotoElectric{T}(Z)
+    function PhotoElectric(T::Type, Z)
         s = (co.kilo * co.eV) .^ (1:4)
 
         A = Z / Z_TO_A_RATIO[Z]
@@ -30,9 +30,13 @@ struct PhotoElectric{T}
         
         return new{T}(Z, left_energy, coeffs, binding)
     end
+
+    PhotoElectric(Z) = PhotoElectric(Float64, Z)
 end
 
+
 function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
+    mc2 = co.electron_mass * co.c^2
     electron_energy = sample_electron_energy(pe, eng)
     cosθ = sample_electron_cos_theta(pe, electron_energy)
     ϕ = 2π * rand()
@@ -42,18 +46,17 @@ function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
     v = turn(photon.p, cosθ, ϕ, co.c * β)
 
     ReplaceParticleOutcome(photon,
-                           ElectronState(photon.x, v, photon.w, nextcoll(), photon.active))
+                           ElectronState(photon.x, v, photon.w, nextcoll(), photon.t, photon.active))
 end
 
 function totalcs(pe::PhotoElectric, eng)
     (;coeffs, left_energy) = pe
-    j = searchsortedlast(left_energy, eng)
+    j = searchsortedlast(left_energy, eng)    
     return sum(i -> (eng^-i) * coeffs[i, j], 1:4)
 end
 
 function sample_electron_energy(pe::PhotoElectric, photon_energy)
     (;binding) = pe
-    mc2 = co.electron_mass * co.c^2
     
     local b
     for b1 in binding
@@ -71,6 +74,8 @@ function sample_electron_energy(pe::PhotoElectric, photon_energy)
 end
 
 function sample_electron_cos_theta(::PhotoElectric, electron_energy)
+    mc2 = co.electron_mass * co.c^2
+
     # Sample outgoing angle with Sauter-Gavrila distribution.  We follow the PENELOPE manual (2015),
     # p. 55, eqs 2.6-2.11
     γ = 1 + electron_energy / mc2
@@ -83,7 +88,6 @@ function sample_electron_cos_theta(::PhotoElectric, electron_energy)
     while !accept
         ξ = rand()
         ν = 2A / ((A + 2)^2 - 4ξ) * (2ξ + (A + 2) * sqrt(ξ))
-        @show ν
         
         ξ1 = rand()
         accept = ξ1 * g(0)  < g(ν)

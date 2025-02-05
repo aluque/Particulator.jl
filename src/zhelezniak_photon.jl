@@ -39,7 +39,7 @@ end
 presample(c::ZhelezniakCollisions, state, energy) = state.ν
 rate(c::ZhelezniakCollisions, j, ν) = ν
 
-maxrate(c::ZhelezniakCollisions) = c.νmax
+totalrate(c::ZhelezniakCollisions, energy) = c.νmax
 
 
 function collide(c::PhotoIonization, p::ZPhotonState{T}, energy) where T

@@ -61,16 +61,16 @@ end
 
 
 function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
-    @info "Bremsstrahlung!"
-    
     mc2 = co.electron_mass * co.c^2
+    m2c2 = co.electron_mass^2 * co.c^2
     m2c4 = mc2^2
     
     k = sample_secondary_energy(sb, eng)
+
     # Photom momentum magnitude
     photon_p_norm = k / co.c
         
-    cosθ = sample_photon_cos_theta(sb, eng)
+    cosθ = sample_cos_theta(sb, eng)
     ϕ = 2π * rand()
     
     # Photon momentum
@@ -79,12 +79,14 @@ function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
     # Electron momentum
     p0 = momentum(electron)
     p_e = p0 - p_ph
-    γ2 = (1 + dot(p_e, p_e) / m2c4)
+    γ2 = (1 + dot(p_e, p_e) / m2c2)
     β = sqrt(1 - 1 / γ2)
     v_e = co.c * β * p_e / norm(p_e)
     
-    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.s, electron.active),
-                       PhotonState{T}(electron.x, p_ph, electron.w, electron.s, electron.active))
+    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.s, electron.t,
+                                        electron.active),
+                       PhotonState{T}(electron.x, p_ph, electron.w, electron.s, electron.t,
+                                      electron.active))
 end
 
 
@@ -149,33 +151,9 @@ end
 
 """
 Sample the cosine of azimuthal angle θ given the primary kinetic energy `T`.
-This method is obtained from the GEANT4 source code:
-
-source/processes/electromagnetic/standard/src/G4ModifiedTsai.cc
-(commit c07cea1fe028470cd9050371f165c7c815eefb23 in github)
-
-The resulting theta distribution is the same as for sample_azimuth for small theta but differs
-for larger thetas (they are the same if cos θ = 1 - θ^2/2).
-
 Note: currently the SeltzerBerger data or the secondary energy are not used.
 """
-function sample_photon_cos_theta(::SeltzerBerger, T)
-    umax = 2 * (1 + T / (co.electron_mass * co.c^2))
-    a1 = 1.6
-    a2 = a1 / 3
-    border = 0.25
-    
-    accept = false
-    
-    local u
-    while !accept
-        uu = -log(rand() * rand())
-        u = border > rand() ? uu * a1 : uu * a2
-        accept = u <= umax
-    end
-
-    return 1 - 2 * u^2 / umax^2
-end
+sample_cos_theta(::SeltzerBerger, T) = sample_modified_tsai_cos_theta(T)
 
 
 """
@@ -238,6 +216,7 @@ Compute total cross section for bremsstrahlung process modeled by `sb` with prim
 """
 function totalcs(sb::SeltzerBerger, K)
     logK = log(K)
+
     # We allow non-uniform sampling of energies because this method is supposed to be used
     # only for initialization
     i = searchsortedlast(sb.log_energy, logK)
@@ -248,5 +227,5 @@ function totalcs(sb::SeltzerBerger, K)
     
     w = (sb.log_energy[i + 1] - logK) / (sb.log_energy[i + 1] - sb.log_energy[i])
     
-    return w * sb.totalcs[i] + (1 - w) * sb.totalcs[i + 1]    
+    return w * sb.totalcs[i] + (1 - w) * sb.totalcs[i + 1]
 end

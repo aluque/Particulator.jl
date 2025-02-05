@@ -15,10 +15,11 @@ struct ElectronState{T} <: ParticleState{T}
     v::SVector{3, T}
     w::T
     s::T    
+    t::T
     active::Bool
 end
 
-ElectronState(x, v, w=1.0, s=nextcoll(), active=true) = ElectronState(x, v, w, s, active)
+ElectronState(x, v, w=1.0, s=nextcoll(), t=0.0, active=true) = ElectronState(x, v, w, s, t, active)
 
 particle_type(::Type{ElectronState{T}}) where T = Electron
 new_particle(::Type{Electron}, x, v) = ElectronState(x, v, 1.0, nextcoll(), true)
@@ -54,7 +55,7 @@ energy(p::ElectronState) = (gamma(p) - 1) * mass(p) * co.c^2
     γf = sqrt(1 + dot(uf, uf) / co.c^2)
     v1 = uf / γf
 
-    ElectronState(p.x + Δt * v1, v1, p.w, p.s, p.active)
+    ElectronState(p.x + Δt * v1, v1, p.w, p.s, p.t + Δt, p.active)
 end
 
 # Use only if B = 0
@@ -63,7 +64,7 @@ end
     Δv = -(Δt * co.elementary_charge / mass(p)) .* efield(p.x)
     v1 = p.v .+ Δv
 
-    ElectronState(p.x .+ Δt * v1, v1, p.w, p.s, p.active)
+    ElectronState(p.x .+ Δt * v1, v1, p.w, p.s, p.t + Δt, p.active)
 end
 
 
@@ -91,7 +92,7 @@ Use only if B = 0.
     x4 = x3 + c4 * Δt * v3
     v4 = v3
     
-    ElectronState(x4, v4, p.w, p.s, p.active)
+    ElectronState(x4, v4, p.w, p.s, p.t + Δt, p.active)
 end
 
 @inline advance_free(p::ElectronState, efield, bfield, Δt) = advance_free_boris(p, efield, bfield, Δt)

@@ -128,6 +128,38 @@ end
 
 
 #
+# Sampling angles from the modified Tsai distribution
+#
+"""
+Sample from the modified Tsai distribution of azimuthal angles.
+This method is obtained from the GEANT4 source code:
+
+source/processes/electromagnetic/standard/src/G4ModifiedTsai.cc
+(commit c07cea1fe028470cd9050371f165c7c815eefb23 in github)
+
+The resulting theta distribution is the same as for sample_azimuth for small theta but differs
+for larger thetas (they are the same if cos θ = 1 - θ^2/2).
+"""
+function sample_modified_tsai_cos_theta(T)
+    umax = 2 * (1 + T / (co.electron_mass * co.c^2))
+    a1 = 1.6
+    a2 = a1 / 3
+    border = 0.25
+    
+    accept = false
+    
+    local u
+    while !accept
+        uu = -log(rand() * rand())
+        u = border > rand() ? uu * a1 : uu * a2
+        accept = u <= umax
+    end
+
+    return 1 - 2 * u^2 / umax^2
+end
+
+
+#
 # Reading of Geant4 2d vectors
 #
 struct RawG4Physics2DVector{T}

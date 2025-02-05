@@ -85,8 +85,10 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     v1 = turn(electron.v, cosθ1, ϕ, v1norm)
     v2 = turn(electron.v, cosθ2, -ϕ, v2norm)
 
-    NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.s, electron.active),
-                       ElectronState{T}(electron.x, v2, electron.w, nextcoll(), electron.active))
+    NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.s, electron.t,
+                                        electron.active),
+                       ElectronState{T}(electron.x, v2, electron.w, nextcoll(), electron.t,
+                                        electron.active))
 end
 
 

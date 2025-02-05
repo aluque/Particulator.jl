@@ -19,7 +19,8 @@ function collide(c::RelativisticCoulomb, electron::ElectronState{T}, energy) whe
 
     cosθ = sample_rel_sr(α, β)
     vnew = turn(electron.v, cosθ, ϕ)
-    StateChangeOutcome(ElectronState{T}(electron.x, vnew, electron.w, electron.s, electron.active))
+    StateChangeOutcome(ElectronState{T}(electron.x, vnew, electron.w, electron.s, electron.t,
+                                        electron.active))
 end
 
 

@@ -1,9 +1,14 @@
 # Managing of a populations of homogeneous particles.
 
 # Population of a given particle type
+# A note about iup: this is introduced in order to advance particles created during a timestep.
+# When we start the advancing, it has to be 1; then after going to all particles it's set to the
+# index of the last particle that we have already advanced.
 struct Population{PS <: ParticleState, T, C, K, I}
     "Number of particles"
     n::Atomic{Int}
+
+    iup::Atomic{Int}
     
     "Vector with the particles"
     particles::StructArray{PS, 1, K, I}
@@ -35,7 +40,7 @@ function Population(max_particles::Int, inparticles::Vector{PS},
         particles[i] = inparticles[i]
     end
 
-    return Population(Atomic{Int}(init_particles), particles, collisions, energy_cut)
+    return Population(Atomic{Int}(init_particles), Atomic{Int}(1), particles, collisions, energy_cut)
 end
 
 struct ParticleIterator{P <: Population}
@@ -197,10 +202,16 @@ function repack!(popl::Population)
     l = nparticles(popl)
 
     l == 0 && return
-    while !isactive(popl, l)
+
+    while l > 0 && !isactive(popl, l)
         l -= 1
     end
 
+    if l == 0
+        popl.n[] = 0
+        return
+    end
+    
     i = 1
     while i <= l
         if !isactive(popl, i)
