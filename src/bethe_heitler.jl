@@ -194,10 +194,3 @@ function _screen_function2(delta)
 
     return f2
 end
-
-end
-
-if abspath(PROGRAM_FILE) == @__FILE__
-    BetheHeitlerMod.main()
-end
-
