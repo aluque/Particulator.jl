@@ -37,7 +37,7 @@ momentum(p::ElectronState) = gamma(p) * mass(p) * p.v
 # Only kinetic energy
 energy(p::ElectronState) = (gamma(p) - 1) * mass(p) * co.c^2
 
-@inline function advance_free_boris(p::ElectronState, efield, bfield, Δt)
+@inline function advance_free_boris(p, efield, bfield, Δt)
     γ = gamma(p)
     u = γ * p.v
     q = co.elementary_charge * charge(p)
@@ -59,7 +59,7 @@ energy(p::ElectronState) = (gamma(p) - 1) * mass(p) * co.c^2
 end
 
 # Use only if B = 0
-@inline function advance_free_leapfrog(p::ElectronState, efield, bfield, Δt)
+@inline function advance_free_leapfrog(p, efield, bfield, Δt)
     # Leapfrog integration. Note that x and v are not synchronous.
     Δv = -(Δt * co.elementary_charge / mass(p)) .* efield(p.x)
     v1 = p.v .+ Δv
@@ -82,7 +82,7 @@ const d3 = d1
 Yoshida 4th order integrator.
 Use only if B = 0.
 """
-@inline function advance_free_yoshida(p::ElectronState, efield, bfield, Δt)
+@inline function advance_free_yoshida(p, efield, bfield, Δt)
     x1 = p.x + c1 * Δt * p.v
     v1 = p.v + d1 * Δt * (charge(p) / mass(p)) * efield(x1)
     x2 = x1 + c2 * Δt * v1

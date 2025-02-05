@@ -1,6 +1,7 @@
 module Particulator
 export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
-    NullCollision, ElectronState, PhotonState, Population, ORBITALS, advance!, remove_particle!,
+    NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
+    advance!, remove_particle!,
     repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
     BetheHeitler
 
@@ -36,6 +37,7 @@ include("population.jl")
 include("mixed_population.jl")
 include("collisions.jl")
 include("electron.jl")
+include("positron.jl")
 include("photon.jl")
 include("relativistic_coulomb.jl")
 include("rbeb.jl")
