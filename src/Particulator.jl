@@ -1,7 +1,8 @@
 module Particulator
 export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
     NullCollision, ElectronState, PhotonState, Population, ORBITALS, advance!, remove_particle!,
-    repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger
+    repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
+    BetheHeitler
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
@@ -42,6 +43,7 @@ include("seltzer.jl")
 include("static_sandia_data.jl")
 include("atomic_shells.jl")
 include("photo_electric.jl")
+include("bethe_heitler.jl")
 include("slow-electron.jl")
 include("zhelezniak_photon.jl")
 include("lxcat.jl")
