@@ -3,14 +3,12 @@ struct Compton
 end
 
 function collide(c::Compton, photon::PhotonState{T}, eng) where T
-    @info "Compton scattering"
     mc2 = co.electron_mass * co.c^2
     m2c2 = co.electron_mass * co.c^2
-    
+
     E1, cosθ = sample_secondary_energy_and_cos_theta(c, eng)
     ϕ = 2π * rand()
 
-    
     p1norm = E1 / co.c
 
     # Scattered photon momentum
@@ -23,7 +21,7 @@ function collide(c::Compton, photon::PhotonState{T}, eng) where T
     β = sqrt(pe2 / (pe2 + m2c2))
     ve = co.c * β * pe / sqrt(pe2)
     
-    photon1  = PhotonState{T}(photon.x, p1, photon.w, photon.s, photon.t, photon.active)
+    photon1  = PhotonState{T}(photon.x, pg, photon.w, photon.s, photon.t, photon.active)
     electron = ElectronState{T}(photon.x, ve, photon.w, nextcoll(), photon.t, photon.active)
 
     return NewParticleOutcome(photon1, electron)    
@@ -68,18 +66,18 @@ function totalcs(c::Compton, eng)
     b = 230.0
     c = 440.0
 
-    d1 = 2.7965e-1  * barn
+    d1 =  2.7965e-1 * barn
     d2 = -1.8300e-1 * barn
-    d3 = 6.7527     * barn
+    d3 =  6.7527    * barn
     d4 = -1.9798e+1 * barn
-    e1 = 1.9756e-5  * barn
+    e1 =  1.9756e-5 * barn
     e2 = -1.0205e-2 * barn
     e3 = -7.3913e-2 * barn
-    e4 = 2.7079e-2  * barn
+    e4 =  2.7079e-2 * barn
     f1 = -3.9178e-7 * barn
-    f2 = 6.8241e-5  * barn
-    f3 = 6.0480e-5  * barn
-    f4 = 3.0274e-4  * barn
+    f2 =  6.8241e-5 * barn
+    f3 =  6.0480e-5 * barn
+    f4 =  3.0274e-4 * barn
 
     p1Z = Z * (d1 + e1 * Z + f1 * Z^2)
     p2Z = Z * (d2 + e2 * Z + f2 * Z^2)
