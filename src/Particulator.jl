@@ -3,7 +3,7 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
     advance!, remove_particle!,
     repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
-    BetheHeitler, PositronAnihilation, Compton
+    BetheHeitler, PositronAnihilation, Compton, Bhaba
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
@@ -48,6 +48,7 @@ include("photo_electric.jl")
 include("bethe_heitler.jl")
 include("anihilation.jl")
 include("compton.jl")
+include("bhaba.jl")
 include("slow-electron.jl")
 include("zhelezniak_photon.jl")
 include("lxcat.jl")
