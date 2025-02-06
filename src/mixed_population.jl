@@ -19,6 +19,8 @@ Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 function advance!(mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())
     advance_init!(mpopl.index)
     
+    # n is the total number particles created during this time-step. We iterate until the number is
+    # zero, each time passing only through the particles that have not been updated yet.
     local n = 1
     while n > 0
         n = advance1!(mpopl.index, mpopl, efield, bfield, tfinal, tracker)

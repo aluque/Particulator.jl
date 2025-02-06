@@ -56,7 +56,7 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     
     mc2 = co.electron_mass * co.c^2
 
-    E0 = energy(electron)
+    E0 = eng
     E2 = rbeb_sample(E0, B)
     E1 = E0 - E2 - B
 
