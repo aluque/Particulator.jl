@@ -3,6 +3,25 @@ struct PositronAnihilation{T}
     Z::T
 end
 
+function collide(a::PositronAnihilation, pos::PositronState{T}, eng) where T
+    @info "Positron anihilation"
+    mc2 = co.electron_mass * co.c^2
+    p = momentum(pos)
+
+    ϵ = sample_secondary_energy_fraction(a, eng)
+    cosθ = secondary_cos_theta(a, eng, ϵ)
+    ϕ = 2π * rand()
+
+    panorm = ϵ * (eng + mc2) / co.c
+    pa = turn(p, cosθ, ϕ, panorm)
+    pb = p - pa
+
+    photon1 = PhotonState{T}(pos.x, pa, pos.w, nextcoll(), pos.t, pos.active)
+    photon2 = PhotonState{T}(pos.x, pb, pos.w, nextcoll(), pos.t, pos.active)
+
+    return ReplaceParticlePairOutcome(pos, photon1, photon2)    
+end
+
 function totalcs(a::PositronAnihilation, eng)
     (;Z) = a
     mc2 = co.electron_mass * co.c^2
@@ -11,7 +30,6 @@ function totalcs(a::PositronAnihilation, eng)
     A = ((γ^2 + 4γ + 1) / (γ^2 - 1) * log(γ + sqrt(γ^2 - 1)) - (γ + 3) / sqrt(γ^2 - 1)) / (γ + 1)
     return Z * π * r_e^2 * A
 end
-
 
 """
 Sample photon energies as fraction of the initial positron TOTAL energy in a e+ + e-
@@ -22,12 +40,13 @@ function sample_secondary_energy_fraction(::PositronAnihilation, eng)
     mc2 = co.electron_mass * co.c^2
 
     γ = 1 + eng / mc2
-    p = sqrt(T * (T + 2mc2)) / co.c
+    p = sqrt(eng * (eng + 2mc2)) / co.c
 
     ϵmax = (1 + sqrt((γ - 1) / (γ + 1)))
     ϵmin = (1 - sqrt((γ - 1) / (γ + 1)))
     # α = log(ϵmax / ϵmin)
 
+    local ϵ
     accept = false
     while !accept
         ϵ = ϵmin * (ϵmax / ϵmin)^rand()
