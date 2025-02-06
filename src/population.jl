@@ -53,6 +53,7 @@ end
 struct ActiveParticleIterator{P <: Population}
     p::P
 end
+
 function Base.iterate(iter::ActiveParticleIterator, i=1)
     while i <= iter.p.n[]
         if iter.p.particles.active[i]
@@ -62,6 +63,8 @@ function Base.iterate(iter::ActiveParticleIterator, i=1)
     end
     return nothing
 end
+
+Base.length(iter::ActiveParticleIterator) = nactives(iter.p)
 
 isactive(popl::Population, i::Int) = popl.particles.active[i]
 
