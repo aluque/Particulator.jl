@@ -9,7 +9,7 @@ struct Bhaba{T}
     tcut::T
 end
 
-function collide(b::Bhaba, pos::PositronState{T}, eng)
+function collide(b::Bhaba, pos::PositronState{T}, eng) where T
     # This is the energy of the liberated electron.
     E2 = sample_secondary_energy(b, eng)
 
