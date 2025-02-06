@@ -7,20 +7,20 @@ struct RelativisticCoulomb{T} <: CollisionProcess
     Z::T
 end
 
-function collide(c::RelativisticCoulomb, electron::ElectronState{T}, energy) where T
+function collide(c::RelativisticCoulomb, lepton, energy)
     ϕ = 2π * rand()
-    β = norm(electron.v) / co.c
+    β = norm(lepton.v) / co.c
 
     a = 1.3413 * c.Z^(-1//3) * a_0
-    p = momentum(electron)
+    p = momentum(lepton)
 
     # Screening factor in the denominator, do not confuse with fine structure α
     α = co.hbar^2 / (4 * dot(p, p) * a^2)
 
     cosθ = sample_rel_sr(α, β)
-    vnew = turn(electron.v, cosθ, ϕ)
-    StateChangeOutcome(ElectronState{T}(electron.x, vnew, electron.w, electron.s, electron.t,
-                                        electron.active))
+    vnew = turn(lepton.v, cosθ, ϕ)
+    StateChangeOutcome(typeof(lepton)(lepton.x, vnew, lepton.w, lepton.s, lepton.t,
+                                      lepton.active))
 end
 
 
