@@ -22,10 +22,10 @@ Return the index and weight of the item before `x` in a range `r`.
 """
 function indweight(r::LinRange, x)
     #i = searchsortedlast(r, x)
-    #@show r i
-    i = Int(fld(x - first(r), step(r))) + 1
-    #@assert ip == i "$ip != $i"
-    
+    # i = Int(fld(x - first(r), step(r))) + 1
+
+    # This is about 1/3 faster than fld
+    i = floor(Int, (x - first(r)) / step(r)) + 1
     w = (r[i + 1] - x) / step(r)
     @assert 0 <= w <= 1
     return (i, w)
@@ -118,8 +118,8 @@ end
 function indweight(r::LogLinRange, x)
     l = log(x + r.x0)
     
-    i = Int(fld(l - first(r.L), step(r.L))) + 1
-    #@assert ip == i "$ip != $i"
+    # i = Int(fld(l - first(r.L), step(r.L))) + 1
+    i = floor(Int, (l - first(r.L)) / step(r.L)) + 1
 
     w = (exp(r.L[i + 1]) - r.x0 - x) / (exp(r.L[i + 1]) - exp(r.L[i]))
     #@assert 0 <= w <= 1
