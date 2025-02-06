@@ -23,7 +23,7 @@ function collide(bh::BetheHeitler, photon::PhotonState{T}, eng) where T
     electron = ElectronState{T}(photon.x, v_e, photon.w, nextcoll(), photon.t, photon.active)
     positron = PositronState{T}(photon.x, v_p, photon.w, nextcoll(), photon.t, photon.active)
     
-    return ReplaceParticlePairOutcome(photon, electron, positron)                                      
+    return ReplaceParticlePairOutcome(photon, electron, positron)
 end
 
 # Adapted from G4BetheHeitlerModel.cc
