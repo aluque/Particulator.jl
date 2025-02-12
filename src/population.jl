@@ -98,14 +98,13 @@ Add a particle to the population `popl` with super-state super_state.
 """
 function add_particle!(popl::Population, state::ParticleState)
     (;n, particles, collisions) = popl
-    (energy(state) <= popl.energy_cut) && return n[]
+    (energy(state) <= popl.energy_cut) && return -1
     
     @assert n[] < length(particles) "Maximum number of particles reached"
 
     nprev = atomic_add!(n, 1)
     
     particles[nprev + 1] = state
-
     return nprev + 1
 end
 
@@ -191,7 +190,6 @@ function spread(popl::Population{PS}) where PS
     end
     xmean /= tot
     x2mean /= tot
-    
     return (xmean, sqrt(x2mean - dot(xmean, xmean)))
 end
 

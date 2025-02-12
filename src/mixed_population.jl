@@ -16,6 +16,24 @@ Base.get(mp::MultiPopulation, pt::Type{ParticleType{S}}) where S = getfield(mp.i
 Base.map(f, mp::MultiPopulation) = map(f, mp.index)
 Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 
+function init!(mpopl::MultiPopulation, tpl::NamedTuple)
+    popl = first(tpl)
+    for i in popl.iup[]:popl.n[]
+        l = LazyRow(popl.particles, i)
+        l.active || continue
+        setr!(popl, i)
+    end
+
+    init!(mpopl, Base.tail(tpl))
+end
+
+function init!(mpopl::MultiPopulation, tpl::Nothing=nothing)
+    init!(mpopl, mpopl.index)
+end
+
+init!(mpopl::MultiPopulation, tpl::NamedTuple{()}) = nothing
+
+
 function advance!(mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())
     advance_init!(mpopl.index)
     
@@ -40,19 +58,16 @@ function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidC
         l = LazyRow(popl.particles, i)
         l.active || continue
         
-        eng = energy(instantiate(l))
-        totrate = totalrate(collisions, eng)
-        
         trem = tfinal - l.t
         while trem > eps(typeof(trem))
-            tnextcoll = l.s / totrate
+            tnextcoll = l.s / l.r
             if trem > tnextcoll
                 Δt = tnextcoll
                 collides = true
             else
                 Δt = trem
                 collides = false
-                l.s -= Δt * totrate
+                l.s -= Δt * l.r
             end
             state = instantiate(l)
             new_state = advance_free(state, efield, bfield, Δt)
@@ -60,7 +75,6 @@ function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidC
             
             if collides
                 do_one_collision!(mpopl, popl.collisions, new_state, i, tracker)
-                l.s = nextcoll()
             end
             trem -= Δt
         end
@@ -74,33 +88,15 @@ end
 advance1!(tpl::NamedTuple{()}, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker()) = 0
 
 function advance_init!(tpl::NamedTuple)
-    first(tpl).iup[] = 1
+    popl = first(tpl)
+    popl.iup[] = 1
+
+    @batch for i in popl.iup[]:popl.n[]
+        l = LazyRow(popl.particles, i)
+        l.active || continue
+        setr!(popl, i)
+    end
+    
     advance_init!(Base.tail(tpl))
 end
 advance_init!(tpl::NamedTuple{()}) = nothing
-
-
-"""
-Check for the particles that are set to collide and then perform a
-(possibly null) collision
-"""
-function collisions!(mpopl, Δt, tracker=VoidCollisionTracker())
-    # WARN: Possibly type-unstable
-    for (sym, popl) in pairs(mpopl)
-        @batch for i in 1:popl.n[]
-            l = LazyRow(popl.particles, i)
-            l.active || continue
-
-            eng = energy(instantiate(l))
-            totrate = totalrate(colls, eng)
-
-            l.s -= Δt * totrate
-            if l.s <= 0
-                state = instantiate(l)
-                do_one_collision!(mpopl, popl.collisions, state, i, tracker)
-                l.s = nextcoll()
-            end
-        end
-        #@info "$c/$m = $(c/m) collision fraction"
-    end
-end

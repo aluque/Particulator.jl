@@ -54,7 +54,7 @@ const ORBITALS = Dict("N2" => N2_ORBITALS,
 function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     (;B) = c
     
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     E0 = eng
     E2 = rbeb_sample(E0, B)
@@ -85,10 +85,8 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     v1 = turn(electron.v, cosθ1, ϕ, v1norm)
     v2 = turn(electron.v, cosθ2, -ϕ, v2norm)
 
-    NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.s, electron.t,
-                                        electron.active),
-                       ElectronState{T}(electron.x, v2, electron.w, nextcoll(), electron.t,
-                                        electron.active))
+    NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.t),
+                       ElectronState{T}(electron.x, v2, electron.w, electron.t))
 end
 
 
@@ -97,7 +95,7 @@ Differential cross section for RBEB scattering with secondary kinetic energy `W`
 kinetic energy `T`, bounding energy of the orbital `B` and mean kinetic energy of the orbital `U`.
 """
 function rbeb_dσdW(W, T, B, U)
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     t1 = T / mc2
     b1 = B / mc2
     u1 = U / mc2
@@ -137,7 +135,7 @@ Total ionization cross section for RBEB scattering with primary kinetic energy `
 bounding energy of the orbital `B` and mean kinetic energy of the orbital `U`.
 """
 function rbeb_σI(T, B, U)
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     t1 = T / mc2
     b1 = B / mc2
     u1 = U / mc2

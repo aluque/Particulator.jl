@@ -36,8 +36,9 @@ end
 
 
 function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     electron_energy = sample_electron_energy(pe, eng)
+
     cosθ = sample_electron_cos_theta(pe, electron_energy)
     ϕ = 2π * rand()
 
@@ -45,8 +46,7 @@ function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
     β = sqrt(1 - 1 / γ^2)
     v = turn(photon.p, cosθ, ϕ, co.c * β)
 
-    ReplaceParticleOutcome(photon,
-                           ElectronState(photon.x, v, photon.w, nextcoll(), photon.t, photon.active))
+    ReplaceParticleOutcome(photon, ElectronState{T}(photon.x, v, photon.w))
 end
 
 function totalcs(pe::PhotoElectric, eng)
@@ -74,7 +74,7 @@ function sample_electron_energy(pe::PhotoElectric, photon_energy)
 end
 
 function sample_electron_cos_theta(::PhotoElectric, electron_energy)
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     # Sample outgoing angle with Sauter-Gavrila distribution.  We follow the PENELOPE manual (2015),
     # p. 55, eqs 2.6-2.11

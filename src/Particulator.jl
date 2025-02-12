@@ -1,7 +1,7 @@
 module Particulator
 export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
-    advance!, remove_particle!, eachactive,
+    advance!, remove_particle!, eachactive, init!,
     repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba
 

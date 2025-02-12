@@ -14,15 +14,26 @@ struct ElectronState{T} <: ParticleState{T}
     x::SVector{3, T}
     v::SVector{3, T}
     w::T
-    s::T    
+
     t::T
+
+    # s is the time to the next collision normalized by 1 / r
+    s::T
+
+    # r is a bound on the max. rate that the particle will experience during a timestep
+    r::T
+
     active::Bool
+
+    # When creating ElectronStates it is better to leave out the s, r, active fields so they get
+    # apropriate values
+    ElectronState{T}(x, v, w=1.0, t=0.0, s=nextcoll(), r=0.0, active=true) where T = new{T}(x, v, w, t, s, r, active)
+
 end
 
-ElectronState(x, v, w=1.0, s=nextcoll(), t=0.0, active=true) = ElectronState(x, v, w, s, t, active)
 
 particle_type(::Type{ElectronState{T}}) where T = Electron
-new_particle(::Type{Electron}, x, v) = ElectronState(x, v, 1.0, nextcoll(), true)
+new_particle(::Type{Electron}, x, v) = ElectronState(x, v)
 
 mass(p::ElectronState) = co.electron_mass
 mass(::Type{Electron}) = co.electron_mass
@@ -55,7 +66,7 @@ energy(p::ElectronState) = (gamma(p) - 1) * mass(p) * co.c^2
     γf = sqrt(1 + dot(uf, uf) / co.c^2)
     v1 = uf / γf
 
-    typeof(p)(p.x + Δt * v1, v1, p.w, p.s, p.t + Δt, p.active)
+    typeof(p)(p.x + Δt * v1, v1, p.w, p.t + Δt, p.s, p.r, p.active)
 end
 
 # Use only if B = 0
@@ -64,7 +75,7 @@ end
     Δv = -(Δt * co.elementary_charge / mass(p)) .* efield(p.x)
     v1 = p.v .+ Δv
 
-    typeof(p)(p.x .+ Δt * v1, v1, p.w, p.s, p.t + Δt, p.active)
+    typeof(p)(p.x .+ Δt * v1, v1, p.w, p.t + Δt, p.s, p.r, p.active)
 end
 
 
@@ -92,7 +103,7 @@ Use only if B = 0.
     x4 = x3 + c4 * Δt * v3
     v4 = v3
     
-    typeof(p)(x4, v4, p.w, p.s, p.t + Δt, p.active)
+    typeof(p)(x4, v4, p.w, p.t + Δt, p.s, p.r, p.active)
 end
 
 @inline advance_free(p::ElectronState, efield, bfield, Δt) = advance_free_boris(p, efield, bfield, Δt)

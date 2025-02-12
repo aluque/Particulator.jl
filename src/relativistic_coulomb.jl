@@ -19,8 +19,7 @@ function collide(c::RelativisticCoulomb, lepton, energy)
 
     cosθ = sample_rel_sr(α, β)
     vnew = turn(lepton.v, cosθ, ϕ)
-    StateChangeOutcome(typeof(lepton)(lepton.x, vnew, lepton.w, lepton.s, lepton.t,
-                                      lepton.active))
+    StateChangeOutcome(typeof(lepton)(lepton.x, vnew, lepton.w, lepton.t))
 end
 
 

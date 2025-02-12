@@ -26,17 +26,18 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
         # primary energies
         log_energy = log.(exp.(d.y) * energy_scale)
         data = zeros(T, (length(pcum), length(log_energy)))
-        mc2 = co.electron_mass * co.c^2
+        mc2 = co.electron_mc2
         totalcs = zeros(T, length(log_energy))
         
         for i in eachindex(log_energy)
             # d.x = fraction of prim. energy taken by sec.
             T1 = exp(log_energy[i])
-            k = T1 .* d.x
+            k = d.x
             β = sqrt(1 - 1 / (1 + T1 / mc2)^2)
 
             logk = log.(k)
-            data[:, i] = findcumvalues(logk, d.value[i, :], pcum, log(gamma_min), log(gamma_max))
+            data[:, i] = findcumvalues(logk, d.value[i, :], pcum,
+                                       log(gamma_min / T1), log(gamma_max / T1))
             totalcs[i] = ((Z^2 / β^2) * 1e-31 *
                 scaledcs(logk, d.value[i, :], log(gamma_min), log(gamma_max)))
         end
@@ -61,13 +62,14 @@ end
 
 
 function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     m2c2 = co.electron_mass^2 * co.c^2
     m2c4 = mc2^2
     
-    k = sample_secondary_energy(sb, eng)
-
-    # Photom momentum magnitude
+    k = eng * sample_secondary_energy(sb, eng)
+    @assert k < eng "Secondary energy surpasses primary: $(k / co.eV) eV ~ $(eng / co.eV) eV"
+    
+    # Photon momentum magnitude
     photon_p_norm = k / co.c
         
     cosθ = sample_cos_theta(sb, eng)
@@ -83,10 +85,8 @@ function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
     β = sqrt(1 - 1 / γ2)
     v_e = co.c * β * p_e / norm(p_e)
     
-    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.s, electron.t,
-                                        electron.active),
-                       PhotonState{T}(electron.x, p_ph, electron.w, electron.s, electron.t,
-                                      electron.active))
+    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.t),
+                       PhotonState{T}(electron.x, p_ph, electron.w, electron.t))
 end
 
 
@@ -117,7 +117,7 @@ function sample_secondary_energy(sb::SeltzerBerger, T)
         u[i1, j2] * (x - x1) * (y2 - y) +
         u[i2, j1] * (x2 - x) * (y - y1) +
         u[i2, j2] * (x - x1) * (y - y1))
-
+    
     return exp(S / A)
 end
 

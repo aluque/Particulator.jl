@@ -11,6 +11,8 @@ end
 
 function collide(b::Bhaba, pos::PositronState{T}, eng) where T
     # This is the energy of the liberated electron.
+    mc2 = co.electron_mc2
+
     E2 = sample_secondary_energy(b, eng)
 
     E0 = eng
@@ -36,15 +38,14 @@ function collide(b::Bhaba, pos::PositronState{T}, eng) where T
     v1 = turn(pos.v, cosθ1,  ϕ, v1norm)
     v2 = turn(pos.v, cosθ2, -ϕ, v2norm)
 
-    NewParticleOutcome(PositronState{T}(pos.x, v1, pos.w, pos.s, pos.t, pos.active),
-                       ElectronState{T}(pos.x, v2, pos.w, nextcoll(), pos.t, pos.active))    
+    NewParticleOutcome(PositronState{T}(pos.x, v1, pos.w, pos.t),
+                       ElectronState{T}(pos.x, v2, pos.w, pos.t))
 end
 
 function totalcs(b::Bhaba, eng)
     (;Z, tcut) = b
-    r_e = co.elementary_charge^2 / (co.electron_mass * co.c^2) / (4π * co.epsilon_0)
     
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     γ = 1 + eng / mc2
 
     β = sqrt((γ^2 - 1) / γ^2)
@@ -54,7 +55,7 @@ function totalcs(b::Bhaba, eng)
     
     A = (1 / x - 1) / β^2 + B1 * log(x) + B2 * (1 - x) - B3 * (1 - x^2) / 2 + B4 * (1 - x^3) / 3
 
-    return max(0, 2π * r_e^2 * Z * A / (γ - 1))
+    return max(0, 2π * co.r_e^2 * Z * A / (γ - 1))
 end
 
 """
@@ -65,7 +66,7 @@ function sample_secondary_energy(b::Bhaba, eng)
     (;tcut) = b
 
     ϵ0 = tcut / eng
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     γ = 1 + eng / mc2
 
     β = sqrt((γ^2 - 1) / γ^2)

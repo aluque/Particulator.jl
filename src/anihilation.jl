@@ -5,7 +5,7 @@ end
 
 function collide(a::PositronAnihilation, pos::PositronState{T}, eng) where T
     @info "Positron anihilation"
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     p = momentum(pos)
 
     ϵ = sample_secondary_energy_fraction(a, eng)
@@ -16,15 +16,15 @@ function collide(a::PositronAnihilation, pos::PositronState{T}, eng) where T
     pa = turn(p, cosθ, ϕ, panorm)
     pb = p - pa
 
-    photon1 = PhotonState{T}(pos.x, pa, pos.w, nextcoll(), pos.t, pos.active)
-    photon2 = PhotonState{T}(pos.x, pb, pos.w, nextcoll(), pos.t, pos.active)
+    photon1 = PhotonState{T}(pos.x, pa, pos.w, pos.t)
+    photon2 = PhotonState{T}(pos.x, pb, pos.w, pos.t)
 
     return ReplaceParticlePairOutcome(pos, photon1, photon2)    
 end
 
 function totalcs(a::PositronAnihilation, eng)
     (;Z) = a
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     γ = 1 + eng / mc2
     A = ((γ^2 + 4γ + 1) / (γ^2 - 1) * log(γ + sqrt(γ^2 - 1)) - (γ + 3) / sqrt(γ^2 - 1)) / (γ + 1)
@@ -37,7 +37,7 @@ anihilation event. The input `eng` is the positron KINETIC energy.
 GEANT4 Phys. Ref. Manual v. 11.3 p. 146.
 """
 function sample_secondary_energy_fraction(::PositronAnihilation, eng)
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     γ = 1 + eng / mc2
     p = sqrt(eng * (eng + 2mc2)) / co.c
@@ -60,6 +60,7 @@ function sample_secondary_energy_fraction(::PositronAnihilation, eng)
 end
 
 function secondary_cos_theta(::PositronAnihilation, eng, ϵ)
+    mc2 = co.electron_mc2
     γ = 1 + eng / mc2
     cosθ = (ϵ * (γ + 1) - 1) / (ϵ * sqrt(γ^2 - 1))
 

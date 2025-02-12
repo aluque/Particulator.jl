@@ -13,20 +13,25 @@ struct PhotonState{T} <: ParticleState{T}
     "Weight"
     w::T
 
+    "Time of last update"
+    t::T
+
     "Normalized time to collision"
     s::T    
 
-    "Time of last update"
-    t::T
+    "Bound on the max. rate experienced during a timestep"
+    r::T
     
     "Active flag"
     active::Bool
+
+    PhotonState{T}(x, p, w=1.0, t=0.0, s=nextcoll(), r=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
+
 end
 
-PhotonState(x, p, w=1.0, s=nextcoll(), t=0.0, active=true) = PhotonState(x, p, w, s, t, active)
 
 particle_type(::Type{PhotonState{T}}) where T = Photon
-new_particle(::Type{Photon}, x, p) = PhotonState(x, p, 1.0, nextcoll(), 0.0, true)
+new_particle(::Type{Photon}, x, p) = PhotonState(x, p, 1.0, 0.0, nextcoll(), 0.0, true)
 
 mass(p::PhotonState) = 0
 mass(::Type{Photon}) = 0
@@ -39,7 +44,7 @@ gamma(p::PhotonState) = Inf
 momentum(p::PhotonState) = p.p
 energy(p::PhotonState) = norm(p.p) * co.c
 
-@inline function advance_free(p::PhotonState, efield, bfield, Δt)
+@inline function advance_free(p::PhotonState{T}, efield, bfield, Δt) where T
     v = (co.c / norm(p.p)) * p.p
-    PhotonState(p.x + Δt * v, p.p, p.w, p.s, p.t + Δt, p.active)
+    PhotonState{T}(p.x + Δt * v, p.p, p.w, p.t + Δt, p.s, p.r, p.active)
 end

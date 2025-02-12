@@ -3,8 +3,8 @@ struct Compton
 end
 
 function collide(c::Compton, photon::PhotonState{T}, eng) where T
-    mc2 = co.electron_mass * co.c^2
-    m2c2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
+    m2c2 = co.electron_mc^2
 
     E1, cosθ = sample_secondary_energy_and_cos_theta(c, eng)
     ϕ = 2π * rand()
@@ -21,10 +21,10 @@ function collide(c::Compton, photon::PhotonState{T}, eng) where T
     β = sqrt(pe2 / (pe2 + m2c2))
     ve = co.c * β * pe / sqrt(pe2)
     
-    photon1  = PhotonState{T}(photon.x, pg, photon.w, photon.s, photon.t, photon.active)
-    electron = ElectronState{T}(photon.x, ve, photon.w, nextcoll(), photon.t, photon.active)
+    photon1  = PhotonState{T}(photon.x, pg, photon.w, photon.t)
+    electron = ElectronState{T}(photon.x, ve, photon.w, photon.t)
 
-    return NewParticleOutcome(photon1, electron)    
+    return NewParticleOutcome(photon1, electron)
 end
 
 
@@ -33,7 +33,7 @@ Klein-Nishina cross-section following L&L 4, sect. 86.
 """
 function klein_nishina(c::Compton, eng)
     (;Z) = c
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     # Classical electron radius, about 2.8e-15 m
     r_e = co.elementary_charge^2 / (co.electron_mass * co.c^2) / (4π * co.epsilon_0)
@@ -60,7 +60,7 @@ function totalcs(c::Compton, eng)
     (;Z) = c
     
     barn = 1e-28
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     
     a = 20.0
     b = 230.0
@@ -117,7 +117,7 @@ Returns the energy of the scattered photon and the cosine of the angle of the sc
 Based on the GEANT4 Phys. Ref. Manual v. 11.3 p. 41 and G4KleinNishinaCompton.cc.
 """
 function sample_secondary_energy_and_cos_theta(::Compton, eng)
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
     ϵ0 = mc2 / (mc2 + 2 * eng)
     α1 = -log(ϵ0)
     α2 = (1 - ϵ0^2) / 2

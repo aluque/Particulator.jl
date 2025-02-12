@@ -159,4 +159,8 @@ const r_e = elementary_charge^2 / (electron_mass * c^2) / (4π * epsilon_0)
 # Bohr radius
 const a_0 = hbar / (electron_mass * c * fine_structure)
 
+# Electron mc2, mc
+const electron_mc2 = electron_mass * c^2
+const electron_mc = electron_mass * c
+
 end

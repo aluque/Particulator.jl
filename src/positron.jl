@@ -4,12 +4,21 @@ struct PositronState{T} <: ParticleState{T}
     x::SVector{3, T}
     v::SVector{3, T}
     w::T
-    s::T    
+
     t::T
+
+    # s is the time to the next collision normalized by 1 / r
+    s::T
+
+    # r is a bound on the max. rate that the particle will experience during a timestep
+    r::T
+
     active::Bool
+
+    PositronState{T}(x, v, w=1.0, t=0.0, s=nextcoll(), r=0.0, active=true) where T = new{T}(x, v, w, t, s, r, active)
+
 end
 
-PositronState(x, v, w=1.0, s=nextcoll(), t=0.0, active=true) = PositronState(x, v, w, s, t, active)
 
 
 particle_type(::Type{PositronState{T}}) where T = Positron

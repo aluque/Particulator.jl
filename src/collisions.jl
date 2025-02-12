@@ -7,16 +7,14 @@ abstract type AbstractCollisionTable{T, C <: Tuple}; end
 """
 Struct with a set of collisions evaluated at the same energy grid.
 
-The total collision rate can either be a number or another struct. It is used in the form
+The rate bound can either be a number or another struct. It is used in the form
 
-totalrate(::CollisionTable, energy).
+ratebound(::CollisionTable, energy).
 
-If total rate is a number the  assumption is that the total collision rate is independent of
+If rate bound is a number the  assumption is that the total collision rate is independent of
 energy (because the space is filled with NullCollisions).
-This is useful when the energy of the particles changes during the time-stepping.
 
-If totalrate is energy-dependent we can be more efficient for cases where the energy does not change
-during the free propagation (for example for photons).
+The rate bound at a given energy must be an upper limit of the energy-dependent rate during a timestep.
 """
 @kwdef struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
                              A <: AbstractMatrix{T}, TR <: Union{Vector{T}, T}} <: AbstractCollisionTable{T, C}
@@ -29,21 +27,21 @@ during the free propagation (for example for photons).
     "Array with collision rates for each process."
     rate::A
 
-    "Total collision rate, including NullCollisions"
-    totalrate::TR
+    "Upper limit of the total collision rate during a time-step"
+    ratebound::TR
 end
 
 Base.length(c::CollisionTable) = length(c.proc)
 
-totalrate(c::CollisionTable, eng, pre=nothing) = totalrate(c.totalrate, c, eng, pre)
-totalrate(x::Number, c, eng, pre=nothing) = x
+ratebound(c::CollisionTable, eng, pre=nothing) = ratebound(c.ratebound, c, eng, pre)
+ratebound(x::Number, c, eng, pre=nothing) = x
 
-function totalrate(v::Vector, c, eng, pre::Nothing)
+function ratebound(v::Vector, c, eng, pre::Nothing)
     pre = presample(c, nothing, eng)
-    totalrate(v, c, eng, pre)
+    ratebound(v, c, eng, pre)
 end
 
-function totalrate(v::Vector, c, eng, pre)
+function ratebound(v::Vector, c, eng, pre)
     k, w = pre
     return w * v[k] + (1 - w) * v[k + 1]
 end
@@ -73,7 +71,7 @@ end
 abstract type AbstractOutcome end
 
 # Nothing happens
-struct NullOutcome <: AbstractOutcome end
+struct NullOutcome{PS} <: AbstractOutcome end
     
 # The colliding particle dissapears
 struct RemoveParticleOutcome{PS} <: AbstractOutcome
@@ -117,7 +115,19 @@ struct MultiplePhotonOutcome{PS1, C} <: AbstractOutcome
 end
 
 
-@inline collide(c::NullCollision, k, energy) = NullOutcome()
+@inline collide(c::NullCollision, k::PS, energy) where PS = NullOutcome{PS}()
+
+"""
+Set the r field of particle with index `i` using its energy and the safety factor of the population.
+"""
+function setr!(popl, i)
+    l = LazyRow(popl.particles, i)
+
+    eng = energy(l)
+    
+    r = ratebound(popl.collisions, eng)
+    l.r = r
+end
 
 """
    appply!(population, outcome, i)
@@ -126,20 +136,28 @@ Apply a `CollisionOutcome` to a population `population`.  `i` is the index
 of the colliding particle, which is needed if it experiences a change.
 We delegate to `population` handling the creation of a new particle.
 """
-@inline function apply!(mpopl, outcome::NullOutcome, i)
+@inline function apply!(mpopl, outcome::NullOutcome{PS}, i) where PS
+    popl = get(mpopl, particle_type(PS))
+    setr!(popl, i)
+    l = LazyRow(popl.particles, i)
+    l.s = nextcoll()
 end
 
 @inline function apply!(mpopl, outcome::StateChangeOutcome{PS}, i) where PS
     popl = get(mpopl, particle_type(PS))
     popl.particles[i] = outcome.state
+    setr!(popl, i)
 end
 
 @inline function apply!(mpopl, outcome::NewParticleOutcome{PS1, PS2}, i) where {PS1, PS2}
     popl1 = get(mpopl, particle_type(PS1))
     popl1.particles[i] = outcome.state1
+    setr!(popl1, i)
 
     popl2 = get(mpopl, particle_type(PS2))
-    add_particle!(popl2, outcome.state2)
+    j = add_particle!(popl2, outcome.state2)
+
+    j > 0 && setr!(popl2, j)
 end
 
 @inline function apply!(mpopl, outcome::RemoveParticleOutcome{PS}, i) where PS
@@ -152,7 +170,9 @@ end
     remove_particle!(popl1, i)
 
     popl2 = get(mpopl, particle_type(PS2))
-    add_particle!(popl2, outcome.state2)    
+    j = add_particle!(popl2, outcome.state2)
+    j > 0 && setr!(popl2, j)
+
 end
 
 @inline function apply!(mpopl, outcome::ReplaceParticlePairOutcome{PS1, PS2, PS3}, i) where {PS1, PS2, PS3}
@@ -160,28 +180,12 @@ end
     remove_particle!(popl1, i)
 
     popl2 = get(mpopl, particle_type(PS2))
-    add_particle!(popl2, outcome.state2)    
-
+    i = add_particle!(popl2, outcome.state2)    
+    i > 0 && setr!(popl2, i)
+    
     popl3 = get(mpopl, particle_type(PS3))
-    add_particle!(popl3, outcome.state3)    
-end
-
-@inline function apply!(mpopl, outcome::MultiplePhotonOutcome{PS1, C}, i) where {PS1, C}
-    popl1 = get(mpopl, particle_type(PS1))
-    popl1.particles[i] = outcome.state1
-    T = eltype(outcome.state1)
-
-    p = outcome.state1
-    
-    (;log_νmin, log_νmax, photon_weight) = outcome.photoemit
-    photons = get(mpopl, Photon)
-    
-    for i in 1:outcome.nphot
-        v = randsphere() .* co.c
-        ν = exp(log_νmin + (log_νmax - log_νmin) * rand())
-        p2 = PhotonState{T}(p.x, v, ν, photon_weight, nextcoll(), p.active)
-        add_particle!(photons, p2)
-    end
+    j = add_particle!(popl3, outcome.state3)    
+    j > 0 && setr!(popl3, j)
 end
 
 
@@ -205,9 +209,17 @@ Sample one (possibly null) collision.
 
     out = quote
         $(Expr(:meta, :inline))
+
         eng = energy(state)
         pre = presample(colls, state, eng)
-        ξ = rand(T) * totalrate(colls, eng, pre)
+        ξ = rand(T) * state.r
+
+        # Check that we are not underestimating rate bound.
+        # rr = zero(state.r)
+        # for i in 1:$L
+        #     rr += rate(colls, i, pre)
+        # end
+        # @assert rr <= 1.00001 * state.r "Rate upper bound underestimated ($rr vs $(state.r) energy=$(eng/co.eV) eV $(state)): increase safety factor"
         
         #k, w = indweight(colls, energy)
     end
@@ -217,7 +229,6 @@ Sample one (possibly null) collision.
               quote
                   ν = rate(colls, $j, pre)
                   if ν > ξ                      
-                      #$j > 1 && @show eng/co.eV colls.proc[$j]
                       outcome = collide(colls.proc[$j], state, eng)
                       track(tracker, colls.proc[$j], outcome)
                       apply!(mpopl, outcome, i)
@@ -230,7 +241,18 @@ Sample one (possibly null) collision.
     
     push!(out.args,
           quote
-          return nothing
+              # Even after exhausting all processes ξ should remain positive if we
+              # correctly bounded the max. rate.
+              @assert ξ >= 0 "Rate upper bound underestimated: increase safety factor"
+
+              
+              # This is a null collision. Only takes effect if we somehow want to track them or
+              # do something weird. Otherwise all this should fold to a nop.
+              outcome = collide(NullCollision(), state, eng)
+              track(tracker, NullCollision(), outcome)
+              apply!(mpopl, outcome, i)
+
+              return nothing
           end)
           
     return out

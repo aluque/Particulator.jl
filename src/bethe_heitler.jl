@@ -3,25 +3,23 @@ struct BetheHeitler
 end
 
 function collide(bh::BetheHeitler, photon::PhotonState{T}, eng) where T
-    mc2 = co.electron_mass * co.c^2
-
     pkin, ekin = sample_secondary_energy(bh, eng)
     ϕ = 2π * rand()
 
     # Deal with the electron
     cosθ = sample_cos_theta(bh, ekin)
-    γ = 1 + ekin / mc2
+    γ = 1 + ekin / co.electron_mc2
     β = (γ^2 - 1) / γ^2
     v_e = turn(photon.p, cosθ, ϕ, co.c * β)
 
     # Now the positron
     cosθ = sample_cos_theta(bh, pkin)
-    γ = 1 + pkin / mc2
+    γ = 1 + pkin / co.electron_mc2
     β = (γ^2 - 1) / γ^2
     v_p = turn(photon.p, cosθ, ϕ, co.c * β)
 
-    electron = ElectronState{T}(photon.x, v_e, photon.w, nextcoll(), photon.t, photon.active)
-    positron = PositronState{T}(photon.x, v_p, photon.w, nextcoll(), photon.t, photon.active)
+    electron = ElectronState{T}(photon.x, v_e, photon.w, photon.t)
+    positron = PositronState{T}(photon.x, v_p, photon.w, photon.t)
     
     return ReplaceParticlePairOutcome(photon, electron, positron)
 end
@@ -29,8 +27,7 @@ end
 # Adapted from G4BetheHeitlerModel.cc
 function totalcs(bh::BetheHeitler, eng)
     (;Z) = bh
-    mc2 = co.electron_mass * co.c^2
-    if eng < 2mc2
+    if eng < 2 * co.electron_mc2
         # No pair production if gamma is low-energy
         return zero(eng)
     end
@@ -63,7 +60,7 @@ function totalcs(bh::BetheHeitler, eng)
 
     eng1 = max(eng, gamma_energy_limit)
     
-    x = log(eng1 / mc2)
+    x = log(eng1 / co.electron_mc2)
     x2 = x * x
     x3 = x2 * x
     x4 = x3 * x
@@ -76,7 +73,7 @@ function totalcs(bh::BetheHeitler, eng)
     sigma = (Z + 1) * (F1 * Z + F2 * Z * Z + F3)
     
     if eng < gamma_energy_limit
-        sigma = sigma * ((eng - 2mc2) / (gamma_energy_limit - 2mc2))^2
+        sigma = sigma * ((eng - 2 * co.electron_mc2) / (gamma_energy_limit - 2 * co.electron_mc2))^2
     end    
 
     return sigma
@@ -87,7 +84,7 @@ Sample energy of secundary from primary (gamma) kinetic energy `eng` using the d
 """
 function sample_secondary_energy(bh::BetheHeitler, eng)
     (;Z) = bh
-    mc2 = co.electron_mass * co.c^2
+    mc2 = co.electron_mc2
 
     ϵ0 = mc2 / eng
     @assert ϵ0 < 0.5 "Gamma energy must be more than 2 * 511 keV to produce pairs"
