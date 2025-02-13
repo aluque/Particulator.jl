@@ -46,7 +46,7 @@ function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
     β = sqrt(1 - 1 / γ^2)
     v = turn(photon.p, cosθ, ϕ, co.c * β)
 
-    ReplaceParticleOutcome(photon, ElectronState{T}(photon.x, v, photon.w))
+    ReplaceParticleOutcome(photon, ElectronState{T}(photon.x, v, photon.w, photon.t))
 end
 
 function totalcs(pe::PhotoElectric, eng)
