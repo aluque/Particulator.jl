@@ -32,6 +32,7 @@ const DATA_DIR = joinpath(@__DIR__, "..", "data")
     """
 
 include("util.jl")
+include("cheby.jl")
 include("particledefs.jl")
 include("population.jl")
 include("mixed_population.jl")
