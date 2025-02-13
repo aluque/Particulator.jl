@@ -59,7 +59,7 @@ function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidC
         l.active || continue
         
         trem = tfinal - l.t
-        while trem > eps(typeof(trem))
+        while trem > eps(typeof(trem)) && l.active
             tnextcoll = l.s / l.r
             if trem > tnextcoll
                 Δt = tnextcoll
