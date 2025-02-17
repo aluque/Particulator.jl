@@ -45,11 +45,14 @@ function advance!(mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())
     end
 end
 
+# There seem to be problems with inference of NamedTuples
+advance1!(tpl::NamedTuple, args...) = advance1!(tuple(tpl...), args...)
+
 """
 Advance the particles in the population performing, if needed, intermediate
 collisions.
 """
-function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())
+function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())::Int
     popl = first(tpl)
     (;collisions, iup) = popl
     ilast = popl.n[]
@@ -74,7 +77,7 @@ function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidC
             popl.particles[i] = new_state
             
             if collides
-                do_one_collision!(mpopl, popl.collisions, new_state, i, tracker)
+                do_one_collision!(mpopl, popl, popl.collisions, new_state, i, tracker)
             end
             trem -= Δt
         end
@@ -85,9 +88,11 @@ function advance1!(tpl::NamedTuple, mpopl, efield, bfield, tfinal, tracker=VoidC
     return n + advance1!(Base.tail(tpl), mpopl, efield, bfield, tfinal, tracker)
 end
 
-advance1!(tpl::NamedTuple{()}, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker()) = 0
+advance1!(tpl::Tuple{}, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())::Int = 0
 
-function advance_init!(tpl::NamedTuple)
+advance_init!(n::NamedTuple) = advance_init!(tuple(n...))
+
+function advance_init!(tpl::Tuple)
     popl = first(tpl)
     popl.iup[] = 1
 
@@ -96,7 +101,8 @@ function advance_init!(tpl::NamedTuple)
         l.active || continue
         setr!(popl, i)
     end
-    
+
     advance_init!(Base.tail(tpl))
 end
-advance_init!(tpl::NamedTuple{()}) = nothing
+
+advance_init!(tpl::Tuple{}) = nothing

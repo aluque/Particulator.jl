@@ -1,9 +1,10 @@
 module Particulator
 export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
+    Electron, Positron, Photon,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
-    advance!, remove_particle!, eachactive, init!,
+    advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
     repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
-    BetheHeitler, PositronAnihilation, Compton, Bhaba
+    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, fit, speed
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
@@ -36,6 +37,7 @@ include("cheby.jl")
 include("particledefs.jl")
 include("population.jl")
 include("mixed_population.jl")
+include("collision_table.jl")
 include("collisions.jl")
 include("electron.jl")
 include("positron.jl")

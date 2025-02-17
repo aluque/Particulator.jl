@@ -12,7 +12,7 @@ with a sum of Chebyshev polinomials.
 A struct to contain info to divide the interval (0, xmax) into approximately log-spaced
 binary intervals.
 """
-struct BinaryIntervals{T, N}
+struct BinaryIntervals{T}
     "Intervals will be indexed from 0 to k"
     k::Int
 
@@ -80,6 +80,8 @@ Evaluate Chebyshev polynomials up to `N` and return their values as a tuple (T_0
     return expr        
 end
 
+chebval(ξ, n::Int) = collect(chebval(ξ, Val(n)))
+    
 # This way of defining chebval kept resulting in type instabilities in some cases.
 # I don't know way the compiler was not able of inferring.
 # chebval(ξ, v::Val{1}, t::Nothing=nothing) = return (one(ξ),)
@@ -106,19 +108,17 @@ Evaluate at `x` a chebysev expansion contained in `a` for the binary division sp
 If multiple evaluations are requred for the same `x` part of the computations may be stored in
 `pre`, which is computed from `precheb`.
 """
-function chebeval(x::T, b::BinaryIntervals{T, N}, a, pre=nothing) where {T, N}
+function chebeval(x::T, b::BinaryIntervals{T}, a, pre=nothing) where T
     if isnothing(pre)
-        pre = precheb(x, b)
+        pre = precheb(x, b, size(a, 1))
     end
 
     (i, t) = pre
-
-    a1 = a[i + 1]
     
-    return sum(ntuple(j -> a1[j] * t[j], Val(N)))
+    return sum(j -> a[j, i + 1] * t[j], axes(a, 1))
 end
 
-function precheb(x::T, b::BinaryIntervals{T, N})
+function precheb(x::T, b::BinaryIntervals{T}, v::Val{N}) where {T, N}
     (;k, xmax) = b
     x1 = x / xmax
     (s, l) = frexp(x1)
@@ -131,27 +131,89 @@ function precheb(x::T, b::BinaryIntervals{T, N})
         i = 0
     end
     
-    t = chebval(ξ, Val{N}())
+    t = chebval(ξ, v)
 
     return (i, t)    
 end
+
+precheb(x, b, n::Int) = collect(precheb(x, b, Val(n)))
+
+
+"""
+Compute the derivative of a Chebyshev expansion.
+Note: this leaves out many optimizations that we use for chebeval because derivatives are
+used only in the initialization to compute rate bounds.
+"""
+function chebdiff(x::T, b::BinaryIntervals{T}, a::Vector{SVector}) where {T}
+    (;k, xmax) = b
+    x1 = x / xmax
+    (s, l) = frexp(x1)
+    i = x1 == 0 ? 0 : l + k
+
+    if i > 0
+        ξ = 4s - 3
+    else
+        ξ = 2^(k + 1) * x1 - 1
+        i = 0
+    end
+
+    a1 = a[i + 1]
+    (l, r) = interval(b, i)
+    u = (1.0, 2 * ξ)
+    df = a1[2]
+
+    for j in 3:length(a1)
+        df += (j - 1) * u[2] * a1[j]
+        u = (u[2], 2 * ξ * u[2] - u[1])
+    end
+    
+    return 2 * df / (r - l)
+end
+
+
+function chebdiff(x::T, b::BinaryIntervals{T}, a::AbstractMatrix) where {T}
+    (;k, xmax) = b
+    x1 = x / xmax
+    (s, l) = frexp(x1)
+    i = x1 == 0 ? 0 : l + k
+
+    if i > 0
+        ξ = 4s - 3
+    else
+        ξ = 2^(k + 1) * x1 - 1
+        i = 0
+    end
+
+    (l, r) = interval(b, i)
+    u = (1.0, 2 * ξ)
+    df = a[2, i + 1]
+
+    for j in 3:size(a, 1)
+        df += (j - 1) * u[2] * a[j, i + 1]
+        u = (u[2], 2 * ξ * u[2] - u[1])
+    end
+    
+    return 2 * df / (r - l)
+end
+
 
 """
 Find a Chebyshev expansion for function `f` in each of the intervals of `b` and return it as a
 vector of SVectors, one for each interval.
 """
-function fit(f, b::BinaryIntervals{T, N}) where {N, T}
+function fit(f, b::BinaryIntervals{T}, n) where {T}
     (;k) = b
-    a = SVector{N, T}[]
+    a = zeros(T, (n, k + 1))
 
     for i in 0:k
         (l, r) = interval(b, i)
-        x = chebnodes(N, l, r)
+        x = chebnodes(n, l, r)
         fx = f.(x)
         ξ = @.((2 * x - (l + r)) / (r - l))
-        A = hcat(SVector{N}.(chebval.(ξ, Val(N)))...)'
+        A = hcat(chebval.(ξ, n)...)'
+
         coeffs = A \ fx
-        push!(a, SVector{N}(coeffs))
+        a[:, i + 1] = coeffs
     end
 
     return a

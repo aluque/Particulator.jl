@@ -2,66 +2,6 @@ abstract type CollisionProcess end
 
 struct NullCollision <: CollisionProcess end
 
-abstract type AbstractCollisionTable{T, C <: Tuple}; end
-
-"""
-Struct with a set of collisions evaluated at the same energy grid.
-
-The rate bound can either be a number or another struct. It is used in the form
-
-ratebound(::CollisionTable, energy).
-
-If rate bound is a number the  assumption is that the total collision rate is independent of
-energy (because the space is filled with NullCollisions).
-
-The rate bound at a given energy must be an upper limit of the energy-dependent rate during a timestep.
-"""
-@kwdef struct CollisionTable{T, C <: Tuple, V <: AbstractRange{T},
-                             A <: AbstractMatrix{T}, TR <: Union{Vector{T}, T}} <: AbstractCollisionTable{T, C}
-    "Each type of collision"
-    proc::C
-
-    "Energy grid"
-    energy::V
-
-    "Array with collision rates for each process."
-    rate::A
-
-    "Upper limit of the total collision rate during a time-step"
-    ratebound::TR
-end
-
-Base.length(c::CollisionTable) = length(c.proc)
-
-ratebound(c::CollisionTable, eng, pre=nothing) = ratebound(c.ratebound, c, eng, pre)
-ratebound(x::Number, c, eng, pre=nothing) = x
-
-function ratebound(v::Vector, c, eng, pre::Nothing)
-    pre = presample(c, nothing, eng)
-    ratebound(v, c, eng, pre)
-end
-
-function ratebound(v::Vector, c, eng, pre)
-    k, w = pre
-    return w * v[k] + (1 - w) * v[k + 1]
-end
-
-maxenergy(c::CollisionTable) = last(c.energy)
-
-# Checking for collisions involves many tests but some computations are
-# common to all of them. Here we store them in a generic way. energy is passed
-# as an optimization.
-presample(c::CollisionTable, state, energy) = indweight(c.energy, energy)
-
-# Obtain probability rate of process j
-function rate(c::CollisionTable, j, pre)
-    k, w = pre
-
-    return w * c.rate[j, k] + (1 - w) * c.rate[j, k + 1]
-end
-
-
-
 #
 # Collision outcomes
 #
@@ -124,9 +64,12 @@ function setr!(popl, i)
     l = LazyRow(popl.particles, i)
 
     eng = energy(l)
-    
-    r = ratebound(popl.collisions, eng)
-    l.r = r
+    if eng < popl.energy_cut
+        l.r = 0
+    else
+        r = ratebound(popl.collisions, eng)
+        l.r = r
+    end
 end
 
 """
@@ -204,14 +147,18 @@ indweight(colls::CollisionTable, E) = indweight(colls.energy, E)
 """
 Sample one (possibly null) collision.
 """    
-@generated function do_one_collision!(mpopl, colls::AbstractCollisionTable{T, C}, state, i, tracker) where {T, C}
+@generated function do_one_collision!(mpopl, popl, colls::AbstractCollisionTable{T, C},
+                                      state, i, tracker) where {T, C}
     L = fieldcount(C)
-
+    
     out = quote
         $(Expr(:meta, :inline))
-
+        state.r == 0 && return nothing
+        
         eng = energy(state)
-        pre = presample(colls, state, eng)
+        eng >= popl.energy_cut || return nothing
+        
+        @noinline pre = presample(colls, state, eng)
         ξ = rand(T) * state.r
 
         # Check that we are not underestimating rate bound.
@@ -228,10 +175,10 @@ Sample one (possibly null) collision.
         push!(out.args,
               quote
                   ν = rate(colls, $j, pre)
-                  if ν > ξ                      
+                  if ν > ξ
                       outcome = collide(colls.proc[$j], state, eng)
                       track(tracker, colls.proc[$j], outcome)
-                      apply!(mpopl, outcome, i)
+                      @noinline apply!(mpopl, outcome, i)
                       return
                   else
                       ξ -= ν

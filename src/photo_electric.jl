@@ -52,7 +52,7 @@ end
 function totalcs(pe::PhotoElectric, eng)
     (;coeffs, left_energy) = pe
     j = searchsortedlast(left_energy, eng)    
-    return sum(i -> (eng^-i) * coeffs[i, j], 1:4)
+    return j > 0 ? sum(i -> (eng^-i) * coeffs[i, j], 1:4) : zero(eng)
 end
 
 function sample_electron_energy(pe::PhotoElectric, photon_energy)

@@ -34,6 +34,7 @@ charge(::PositronState) = 1
 
 gamma(p::PositronState) = 1 / (sqrt(1 - dot(p.v, p.v) / co.c^2))
 momentum(p::PositronState) = gamma(p) * mass(p) * p.v
+speed(::Type{Positron}, eng) = co.c * sqrt(1 - (co.electron_mc2 / (co.electron_mc2 + eng))^2)
 
 # Only kinetic energy
 energy(p::PositronState) = (gamma(p) - 1) * mass(p) * co.c^2

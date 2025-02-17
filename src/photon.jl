@@ -40,6 +40,8 @@ mass(::Photon) = 0
 charge(::Type{Photon}) = 0
 charge(::PhotonState) = 0
 
+speed(::Type{Photon}, eng) = co.c
+
 gamma(p::PhotonState) = Inf
 momentum(p::PhotonState) = p.p
 energy(p::PhotonState) = norm(p.p) * co.c

@@ -40,6 +40,8 @@ mass(::Type{Electron}) = co.electron_mass
 mass(::Electron) = co.electron_mass
 " Charge in units of the elementary charge. "
 charge(::Type{Electron}) = -1
+speed(::Type{Electron}, eng) = co.c * sqrt(1 - (co.electron_mc2 / (co.electron_mc2 + eng))^2)
+
 charge(::ElectronState) = -1
 
 gamma(p::ElectronState) = 1 / (sqrt(1 - dot(p.v, p.v) / co.c^2))
