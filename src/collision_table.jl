@@ -112,7 +112,7 @@ Build a (Chebyshev) collision table from a list of `processes` for a given parti
 that converts cross section per atom to a inverse mean-free-path (typically this is a density of
 scatterers).
 """
-function collision_table_from_processes(T, processes, particle, Fdt;
+function collision_table_from_processes(processes, particle, Fdt;
                                         safety=1.1,
                                         nintervals=32,
                                         order=3,

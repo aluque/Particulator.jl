@@ -5,9 +5,11 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
     repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
-    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback 
+    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback,
+    collision_table_from_processes
 
 using Base.Threads: Atomic, @threads, atomic_add!
+using StyledStrings
 using LinearAlgebra
 using StaticArrays
 using Interpolations
