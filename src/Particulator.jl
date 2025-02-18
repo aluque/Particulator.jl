@@ -3,14 +3,16 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     Electron, Positron, Photon,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
     advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
-    repack!, energy, nparticles, AbstractCallback, CombinedCallback, SeltzerBerger, PhotoElectric,
-    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed
+    repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
+    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
+    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback 
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
 using StaticArrays
 using Interpolations
 using Polyester
+using Accessors
 using StructArrays
 using DocStringExtensions
 using Distributions

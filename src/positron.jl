@@ -43,3 +43,10 @@ energy(p::PositronState) = (gamma(p) - 1) * mass(p) * co.c^2
 
 # advance_free_boris is defined in electron.jl and it works also for positrons.
 @inline advance_free(p::PositronState, efield, bfield, Δt) = advance_free_boris(p, efield, bfield, Δt)
+
+function lincomb(a::PositronState{T}, b::PositronState{T}, w::Number) where T
+    PositronState{T}(a.x * w + b.x * (1 - w),
+                     a.v * w + b.v * (1 - w),
+                     a.w * w + b.w * (1 - w),
+                     a.t * w + b.t * (1 - w))
+end

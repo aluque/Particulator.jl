@@ -53,3 +53,14 @@ energy(p::PhotonState) = norm(p.p) * co.c
     v = (co.c / norm(p.p)) * p.p
     PhotonState{T}(p.x + Δt * v, p.p, p.w, p.t + Δt, p.s, p.r, p.active)
 end
+
+"""
+Produce a linear combination between two `ElectronState`s, `a` and `b`, where `a` is assigned a weight
+`w` and `b` a weight `(1 - w)`.
+"""
+function lincomb(a::PhotonState{T}, b::PhotonState{T}, w::Number) where T
+    PhotonState{T}(a.x * w + b.x * (1 - w),
+                   a.p * w + b.p * (1 - w),
+                   a.w * w + b.w * (1 - w),
+                   a.t * w + b.t * (1 - w))
+end

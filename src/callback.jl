@@ -56,6 +56,75 @@ _onadvance(tpl::Tuple{}, old_state, new_state, t=nothing) = new_state
 
 
 
+#
+# Some useful callbacks
+#
+"""
+A callback that counts collisions and organizes them according to collision type.
+"""
+struct CollisionCounter <: AbstractCallback
+    d::Dict{Type, Atomic{Int}}
+    CollisionCounter() = new(Dict{Type, Int}())
+end
+
+function oncollision(cc::CollisionCounter, collision, outcome, t)
+    @info "Collision at t=$t"
+    s = typeof(collision)
+    if haskey(cc.d, s)
+        cc.d[s][] += 1
+    else
+        cc.d[s] = Atomic{Int}(1)
+    end
+    return outcome
+end
+
+function Base.show(io::IO, cc::CollisionCounter)
+    println(io, "CollisionCounter with values:")
+    tot = 0
+    for (key, value) in cc.d
+        println(io, styled"{magenta:$key}:   {red:$(value[])}")
+        tot += value[]
+    end
+    println(io, styled"Total:   {green:$(tot)}")
+end
+
+"""
+A callback to trace particles as they cross a wall.
+"""
+struct WallCallback{P, T, L} <: AbstractCallback
+    coord::Int
+    v::T
+    drop::Bool
+
+    accum::L
+    lck::ReentrantLock
     
+    """
+    Initialize a WallCallback to count particles with states of type `P`. The wall is perpendicular
+    to the axis `coord` and located at `v` (e.g. z=1 if `coord=3`, `v=1`). `drop` indicates whether
+    the particle must be dropped after recording it (defaults to `true`).
+    """
+    function WallCallback{P}(coord, v, drop=true) where P
+        accum = P[]
+        new{P, typeof(v), typeof(accum)}(coord, v, drop, accum, ReentrantLock())
+    end
+end
+
+
+function Particulator.onadvance(wcb::WallCallback{P}, old_state::P, new_state::P, t) where P
+    (;coord, v, accum, drop, lck) = wcb
+    if old_state.x[coord] < v < new_state.x[coord]
+        # interpolate
+        w = (v - old_state.x[coord]) / (new_state.x[coord] - old_state.x[coord])
+        lock(lck) do
+            push!(accum, lincomb(new_state, old_state, w))
+        end
+        if drop
+            @reset new_state.active = false
+        end
+    end
+
+    return new_state
+end
 
 

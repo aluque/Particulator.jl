@@ -4,6 +4,7 @@ authors = ["Alejandro Luque Estepa <aluque@iaa.es> and contributors"]
 version = "1.0.0-DEV"
 
 [deps]
+Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -17,6 +18,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 
 [compat]
+Accessors = "0.1.41"
 BSplineKit = "0.17.7"
 DelimitedFiles = "1.9.1"
 Distributions = "0.25.116"

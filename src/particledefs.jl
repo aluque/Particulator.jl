@@ -40,3 +40,10 @@ abstract type ParticleState{T}; end
 Base.eltype(p::ParticleState{T}) where {T} = T
 
 energy(p) = energy(instantiate(p))
+
+"""
+Produce a linear combination between two `ParticleState`s, `a` and `b`, where `a` is assigned a weight
+`w` and `b` a weight `(1 - w)`.
+"""
+function lincomb(a::ParticleState{T}, b::ParticleState{T}, w::Number) where T
+end

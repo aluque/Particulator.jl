@@ -112,3 +112,13 @@ end
 
 @inline advance_free(p::ElectronState, efield, bfield, Δt) = advance_free_boris(p, efield, bfield, Δt)
 
+"""
+Produce a linear combination between two `ElectronState`s, `a` and `b`, where `a` is assigned a weight
+`w` and `b` a weight `(1 - w)`.
+"""
+function lincomb(a::ElectronState{T}, b::ElectronState{T}, w::Number) where T
+    ElectronState{T}(a.x * w + b.x * (1 - w),
+                     a.v * w + b.v * (1 - w),
+                     a.w * w + b.w * (1 - w),
+                     a.t * w + b.t * (1 - w))
+end
