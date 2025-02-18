@@ -199,9 +199,10 @@ end
 
 """
 Find a Chebyshev expansion for function `f` in each of the intervals of `b` and return it as a
-vector of SVectors, one for each interval.
+matrix where the first index represents terms in the expansions and the second index labels intervals
+in `b`.
 """
-function fit(f, b::BinaryIntervals{T}, n) where {T}
+function chebfit(f, b::BinaryIntervals{T}, n) where {T}
     (;k) = b
     a = zeros(T, (n, k + 1))
 
