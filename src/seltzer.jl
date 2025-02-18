@@ -20,9 +20,12 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
     primary log-energy"
     data::Matrix{T}
 
-    function SeltzerBerger(d::RawG4Physics2DVector{T}, pcum::V, Z;
-                           gamma_min=1e2 * co.eV, gamma_max=5e7 * co.eV,
-                           energy_scale=1e6 * co.eV) where {T, V}
+    function SeltzerBerger(d::RawG4Physics2DVector{T}, Z;
+                           ncum=1000,
+                           pcum=LinRange(0.0, 1.0, ncum),
+                           gamma_min=1e2 * co.eV,
+                           gamma_max=5e7 * co.eV,
+                           energy_scale=1e6 * co.eV) where {T}
         # primary energies
         log_energy = log.(exp.(d.y) * energy_scale)
         data = zeros(T, (length(pcum), length(log_energy)))
@@ -42,18 +45,18 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
                 scaledcs(logk, d.value[i, :], log(gamma_min), log(gamma_max)))
         end
         
-        new{T, V}(log_energy, totalcs, pcum, data)
+        new{T, typeof(pcum)}(log_energy, totalcs, pcum, data)
     end
 
-    function SeltzerBerger(T, fname::AbstractString, pcum::V, Z; kw...) where V
+    function SeltzerBerger(T::Type, fname::AbstractString, Z; kw...)
         d = RawG4Physics2DVector{T}(fname)
-        SeltzerBerger(d, pcum, Z; kw...)
+        SeltzerBerger(d, Z; kw...)
     end
 
-    function SeltzerBerger(T, Z::Int, pcum::V; kw...) where V
+    function SeltzerBerger(T::Type, Z::Int; kw...)
         fname = joinpath(DATA_DIR, "brem_SB", "br$(Z)")
         
-        SeltzerBerger(T, fname, pcum, Z; kw...)
+        SeltzerBerger(T, fname, Z; kw...)
     end
 
     SeltzerBerger(fname::AbstractString, args...; kw...) = SeltzerBerger(Float64, fname, args...; kw...)
