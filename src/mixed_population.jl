@@ -13,7 +13,8 @@ end
 
 
 Base.get(mp::MultiPopulation, pt::Type{ParticleType{S}}) where S = getfield(mp.index, S)
-Base.map(f, mp::MultiPopulation) = map(f, mp.index)
+Base.map(f, mp::MultiPopulation) = map(f, Tuple(mp.index))
+Base.foreach(f, m::MultiPopulation) = foreach(f, Tuple(m.index))
 Base.pairs(mp::MultiPopulation) = pairs(mp.index)
 
 function init!(mpopl::MultiPopulation, tpl::NamedTuple)

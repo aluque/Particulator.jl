@@ -6,7 +6,9 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
     AbstractCallback, CombinedCallback, CollisionCounter, WallCallback,
-    collision_table_from_processes
+    collision_table_from_processes,
+    HomogeneousField, DoubleLayerField, run!
+
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using StyledStrings
@@ -21,6 +23,7 @@ using Distributions
 using DelimitedFiles
 using LambertW
 using BSplineKit
+using Printf
 
 import JSON
 
@@ -58,7 +61,9 @@ include("anihilation.jl")
 include("compton.jl")
 include("bhaba.jl")
 include("slow-electron.jl")
+include("field.jl")
 include("zhelezniak_photon.jl")
 include("lxcat.jl")
+include("run.jl")
 
 end

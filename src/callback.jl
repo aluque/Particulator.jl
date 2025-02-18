@@ -1,7 +1,8 @@
 #=
 Callbacks allow to perform actions during the simulation.
-A callback instance must define the methods oncollision (called for each collision)
-and onadvance (called for each time the particle is advanced.
+A callback instance must define the methods oncollision (called for each collision),
+onadvance (called for each time the particle is advanced, and onstep (called after
+each completed timestep).
 =#
 
 abstract type AbstractCallback end
@@ -20,11 +21,17 @@ a particle state that will be used instead of `new_state` if it differs from it.
 """
 onadvance(::AbstractCallback, old_state, new_state, t=nothing) = new_state
 
+"""
+Callback method called after each timestep. `mpopl` is a `MultiPopulation` containing
+the current state of all particles from each population.
+"""
+onstep(::AbstractCallback, mpopl, t=nothing) = nothing
+
 
 """
 A combination of several callbacks, called in order.
 """
-struct CombinedCallback{T<:Tuple}
+struct CombinedCallback{T<:Tuple} <: AbstractCallback
     tpl::T
 end
 

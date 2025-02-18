@@ -242,3 +242,15 @@ function shuffle!(popl::Population)
     end        
 end
 
+function droplow!(popl, thres=0.0)
+    thres = thres == 0 ? popl.energy_cut : thres
+    
+    prt = popl.particles
+    for i in 1:popl.n[]
+        if prt[i].active && energy(prt[i]) < thres
+            remove_particle!(popl, i)
+        end
+    end
+
+    repack!(popl)
+end
