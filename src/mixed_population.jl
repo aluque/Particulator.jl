@@ -34,14 +34,14 @@ end
 init!(mpopl::MultiPopulation, tpl::NamedTuple{()}) = nothing
 
 
-function advance!(mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())
+function advance!(mpopl, efield, bfield, tfinal, callback=VoidCallback())
     advance_init!(mpopl.index)
     
     # n is the total number particles created during this time-step. We iterate until the number is
     # zero, each time passing only through the particles that have not been updated yet.
     local n = 1
     while n > 0
-        n = advance1!(mpopl.index, mpopl, efield, bfield, tfinal, tracker)
+        n = advance1!(mpopl.index, mpopl, efield, bfield, tfinal, callback)
     end
 end
 
@@ -52,7 +52,7 @@ advance1!(tpl::NamedTuple, args...) = advance1!(tuple(tpl...), args...)
 Advance the particles in the population performing, if needed, intermediate
 collisions.
 """
-function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())::Int
+function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, callback=VoidCallback())::Int
     popl = first(tpl)
     (;collisions, iup) = popl
     ilast = popl.n[]
@@ -74,10 +74,13 @@ function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, tracker=VoidCollis
             end
             state = instantiate(l)
             new_state = advance_free(state, efield, bfield, Δt)
-            popl.particles[i] = new_state
+            new_state = onadvance(callback, state, new_state, l.t + Δt)
             
-            if collides
-                do_one_collision!(mpopl, popl, popl.collisions, new_state, i, tracker)
+            popl.particles[i] = new_state
+
+            # Particle may be deactivated by onadvance
+            if collides && new_state.active
+                do_one_collision!(mpopl, popl, popl.collisions, new_state, i, l.t + Δt, callback)
             end
             trem -= Δt
         end
@@ -85,10 +88,10 @@ function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, tracker=VoidCollis
     n = ilast - iup[] + 1
     iup[] = ilast + 1
     
-    return n + advance1!(Base.tail(tpl), mpopl, efield, bfield, tfinal, tracker)
+    return n + advance1!(Base.tail(tpl), mpopl, efield, bfield, tfinal, callback)
 end
 
-advance1!(tpl::Tuple{}, mpopl, efield, bfield, tfinal, tracker=VoidCollisionTracker())::Int = 0
+advance1!(tpl::Tuple{}, mpopl, efield, bfield, tfinal, callback=VoidCallback())::Int = 0
 
 advance_init!(n::NamedTuple) = advance_init!(tuple(n...))
 

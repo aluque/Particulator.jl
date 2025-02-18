@@ -25,7 +25,10 @@ struct PhotonState{T} <: ParticleState{T}
     "Active flag"
     active::Bool
 
-    PhotonState{T}(x, p, w=1.0, t=0.0, s=nextcoll(), r=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
+    PhotonState{T}(x::SVector{3, T}, p::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
+                   r::T=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
+    PhotonState(x::SVector{3, T}, p::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
+                r::T=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
 
 end
 

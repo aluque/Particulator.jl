@@ -132,15 +132,6 @@ end
 end
 
 
-#
-# With collision tracker we can define a callback executed whenever a collision
-# happens.
-#
-abstract type AbstractCollisionTracker end
-struct VoidCollisionTracker <: AbstractCollisionTracker end
-
-track(::AbstractCollisionTracker, collision, outcome) = nothing
-
 
 indweight(colls::CollisionTable, E) = indweight(colls.energy, E)
 
@@ -148,7 +139,7 @@ indweight(colls::CollisionTable, E) = indweight(colls.energy, E)
 Sample one (possibly null) collision.
 """    
 @generated function do_one_collision!(mpopl, popl, colls::AbstractCollisionTable{T, C},
-                                      state, i, tracker) where {T, C}
+                                      state, i, t, callback) where {T, C}
     L = fieldcount(C)
     
     out = quote
@@ -177,7 +168,7 @@ Sample one (possibly null) collision.
                   ν = rate(colls, $j, pre)
                   if ν > ξ
                       outcome = collide(colls.proc[$j], state, eng)
-                      track(tracker, colls.proc[$j], outcome)
+                      outcome = oncollision(callback, colls.proc[$j], outcome, t)
                       @noinline apply!(mpopl, outcome, i)
                       return
                   else

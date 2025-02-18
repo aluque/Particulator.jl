@@ -3,8 +3,8 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     Electron, Positron, Photon,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
     advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
-    repack!, energy, nparticles, AbstractCollisionTracker, track, SeltzerBerger, PhotoElectric,
-    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, fit, speed
+    repack!, energy, nparticles, AbstractCallback, CombinedCallback, SeltzerBerger, PhotoElectric,
+    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed
 
 using Base.Threads: Atomic, @threads, atomic_add!
 using LinearAlgebra
@@ -35,6 +35,7 @@ const DATA_DIR = joinpath(@__DIR__, "..", "data")
 include("util.jl")
 include("cheby.jl")
 include("particledefs.jl")
+include("callback.jl")
 include("population.jl")
 include("mixed_population.jl")
 include("collision_table.jl")
