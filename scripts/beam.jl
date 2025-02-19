@@ -24,7 +24,7 @@ using Base.Threads: Atomic
 using PyPlot
 
 function main(;n_init_particles=1,
-              maxp=1000_000,
+              maxp=max(1000_000, 10 * n_init_particles),
               init_energy=7e6 * co.eV,
               dt=2.5e-11,
               efield = 5e5,
@@ -83,7 +83,7 @@ function main(;n_init_particles=1,
         callback = VoidCallback();
     end
 
-    run!(mpopl, efield, bfield, tfinal, dt, callback)
+    run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt=1e-10)
     
     return NamedTuple(Base.@locals)
 end
