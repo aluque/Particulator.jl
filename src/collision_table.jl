@@ -136,12 +136,11 @@ function collision_table_from_processes(processes, particle, Fdt;
     eng = LogLinRange(log(1e-2 * co.eV), log(0.9999 * max_energy), 100_000)
     
     v1 = speed.(Ref(particle), eng)
-    p = sortperm(1:nprocs, by=i ->    
+    p = sortperm(1:nprocs, rev=true, by=i ->    
                  processes[i][1] * maximum(totalcs.(Ref(processes[i][2]), eng) .* v1))
     
     proc = tuple([processes[p[i]][2] for i in 1:nprocs]...)
     a = a[:, p, :]
-    
     return ChebyshevCollisionTable{Float64, order, typeof(proc), typeof(a),
                                    typeof(rb)}(;proc=proc, b=b, rate=a, ratebound=rb)    
 end
@@ -154,6 +153,8 @@ function compratebound(particle, a, b, Fdt, safety)
     γ(::Type{Photon}, eng) = 0
 
     rb = chebfit(b, size(a, 1)) do eng
+        size(a, 2) == 0 && return zero(eng)
+        
         df = sum(j -> Particulator.chebdiff(eng, b, @view a[:, j, :]), axes(a, 2))
         f = sum(j -> Particulator.chebeval(eng, b, @view a[:, j, :]), axes(a, 2))
         return f + γ(particle, eng)^3 * speed(particle, eng) * Fdt * abs(df) * safety
