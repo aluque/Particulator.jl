@@ -2,12 +2,12 @@ module Particulator
 export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTable,
     Electron, Positron, Photon,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
-    advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
+    nactives, advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
     repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
-    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback,
+    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
     collision_table_from_processes,
-    HomogeneousField, DoubleLayerField, run!
+    HomogeneousField, DoubleLayerField, run!, roulette!
 
 
 using Base.Threads: Atomic, @threads, atomic_add!
