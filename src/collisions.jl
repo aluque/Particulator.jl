@@ -187,7 +187,7 @@ Sample one (possibly null) collision.
               # This is a null collision. Only takes effect if we somehow want to track them or
               # do something weird. Otherwise all this should fold to a nop.
               outcome = collide(NullCollision(), state, eng)
-              track(tracker, NullCollision(), outcome)
+              oncollision(callback, NullCollision(), outcome)
               apply!(mpopl, outcome, i)
 
               return nothing
