@@ -254,3 +254,29 @@ function droplow!(popl, thres=0.0)
 
     repack!(popl)
 end
+
+
+"""
+Apply Russian roulette to the population. `f` is a function that receives the
+particle energy and returns a probabilty that the particle be retained.
+"""
+function roulette!(f::Function, popl::Population)
+    n = 0
+    for i in 1:popl.n[]        
+        l = LazyRow(popl.particles, i)
+        l.active || continue
+        eng = energy(instantiate(l))
+        p = f(eng)
+        if rand() < p
+            l.w /= p
+        else
+            remove_particle!(popl, i)
+        end
+    end
+end
+
+"""
+Apply Russian roulette with a constant probability of dropping a particle.
+"""
+roulette!(f::Number, popl::Population) = roulette!(_ -> f, popl)
+
