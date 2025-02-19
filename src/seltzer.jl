@@ -42,7 +42,7 @@ struct SeltzerBerger{T, V <: AbstractVector{T}}
             data[:, i] = findcumvalues(logk, d.value[i, :], pcum,
                                        log(gamma_min / T1), log(gamma_max / T1))
             totalcs[i] = ((Z^2 / β^2) * 1e-31 *
-                scaledcs(logk, d.value[i, :], log(gamma_min), log(gamma_max)))
+                scaledcs(logk, d.value[i, :], log(gamma_min / T1), log(gamma_max / T1)))
         end
         
         new{T, typeof(pcum)}(log_energy, totalcs, pcum, data)
