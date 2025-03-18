@@ -149,7 +149,7 @@ Sample one (possibly null) collision.
         eng = energy(state)
         eng >= popl.energy_cut || return nothing
         
-        @noinline pre = presample(colls, state, eng)
+        pre = presample(colls, state, eng)
         ξ = rand(T) * state.r
 
         # Check that we are not underestimating rate bound.
@@ -169,7 +169,8 @@ Sample one (possibly null) collision.
                   if ν > ξ
                       outcome = collide(colls.proc[$j], state, eng)
                       outcome = oncollision(callback, colls.proc[$j], outcome, t)
-                      @noinline apply!(mpopl, outcome, i)
+                      apply!(mpopl, outcome, i)
+
                       return
                   else
                       ξ -= ν
