@@ -34,6 +34,7 @@ function main(;n_init_particles=1,
               z2=200.0,
               seed = 0,
               Kthresh = 1e3 * co.eV,
+              output_dt=nothing,
               zwall=nothing,
               composition = Dict("N2" => co.nair * 0.79,
                                  "O2" => co.nair * 0.21)
@@ -46,8 +47,8 @@ function main(;n_init_particles=1,
     
     # Build collision tables
     ecolls = build_electron_collision_table(composition, Fdt; safety)    
-    pcolls = build_positron_collision_table(composition, Kthresh, Fdt; safety)
-    γcolls = build_photon_collision_table(composition, Kthresh)
+    pcolls = build_positron_collision_table(composition, 1e2 * co.eV, Fdt; safety)
+    γcolls = build_photon_collision_table(composition, 1e3 * co.eV)
     
     # Initialize particles
     K = init_energy
@@ -60,8 +61,8 @@ function main(;n_init_particles=1,
 
     # Construct populations
     electrons = Population(maxp, init_particles, ecolls, Kthresh)
-    photons   = Population(maxp, PhotonState{Float64}[], γcolls, Kthresh)
-    positrons = Population(maxp, PositronState{Float64}[], pcolls, Kthresh)
+    photons   = Population(maxp, PhotonState{Float64}[], γcolls, 1e3 * co.eV)
+    positrons = Population(maxp, PositronState{Float64}[], pcolls, 1e2 * co.eV)
 
     population_index = Pair{Symbol, Any}[:electron => electrons,
                                          :photon => photons,
@@ -83,7 +84,7 @@ function main(;n_init_particles=1,
         callback = VoidCallback();
     end
 
-    run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt=1e-10)
+    run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt)
     
     return NamedTuple(Base.@locals)
 end
