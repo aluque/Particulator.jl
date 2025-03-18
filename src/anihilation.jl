@@ -4,15 +4,15 @@ struct PositronAnihilation{T}
 end
 
 function collide(a::PositronAnihilation, pos::PositronState{T}, eng) where T
-    @info "Positron anihilation"
     mc2 = co.electron_mc2
     p = momentum(pos)
 
     ϵ = sample_secondary_energy_fraction(a, eng)
     cosθ = secondary_cos_theta(a, eng, ϵ)
     ϕ = 2π * rand()
-
-    panorm = ϵ * (eng + mc2) / co.c
+    Etot = eng + 2mc2
+    
+    panorm = ϵ * Etot / co.c
     pa = turn(p, cosθ, ϕ, panorm)
     pb = p - pa
 
@@ -42,8 +42,8 @@ function sample_secondary_energy_fraction(::PositronAnihilation, eng)
     γ = 1 + eng / mc2
     p = sqrt(eng * (eng + 2mc2)) / co.c
 
-    ϵmax = (1 + sqrt((γ - 1) / (γ + 1)))
-    ϵmin = (1 - sqrt((γ - 1) / (γ + 1)))
+    ϵmax = (1 + sqrt((γ - 1) / (γ + 1))) / 2
+    ϵmin = (1 - sqrt((γ - 1) / (γ + 1))) / 2
     # α = log(ϵmax / ϵmin)
 
     local ϵ
@@ -55,7 +55,6 @@ function sample_secondary_energy_fraction(::PositronAnihilation, eng)
         accept = rand() < g
     end
 
-    Etot = eng + 2mc2
     return ϵ
 end
 
