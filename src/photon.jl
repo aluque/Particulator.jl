@@ -44,10 +44,11 @@ charge(::Type{Photon}) = 0
 charge(::PhotonState) = 0
 
 speed(::Type{Photon}, eng) = co.c
+velocity(s::PhotonState) = s.p * (co.c / norm(s.p))
 
-gamma(p::PhotonState) = Inf
-momentum(p::PhotonState) = p.p
-kinenergy(p::PhotonState) = norm(p.p) * co.c
+gamma(s::PhotonState) = Inf
+momentum(s::PhotonState) = s.p
+kinenergy(s::PhotonState) = norm(s.p) * co.c
 
 @inline function advance_free(p::PhotonState{T}, efield, bfield, Δt) where T
     v = (co.c / norm(p.p)) * p.p
