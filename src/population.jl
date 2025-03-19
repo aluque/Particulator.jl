@@ -98,7 +98,7 @@ Add a particle to the population `popl` with super-state super_state.
 """
 function add_particle!(popl::Population, state::ParticleState)
     (;n, particles, collisions) = popl
-    (energy(state) <= popl.energy_cut) && return -1
+    (kinenergy(state) <= popl.energy_cut) && return -1
     
     @assert n[] < length(particles) "Maximum number of particles reached"
 
@@ -155,7 +155,7 @@ function meanenergy(popl::Population{PS}) where PS
     for p in eachparticle(popl)
         if p.active
             totw += p.w
-            tot += p.w * energy(instantiate(p))
+            tot += p.w * kinenergy(instantiate(p))
         end
     end
     tot / totw
@@ -166,7 +166,7 @@ end
 Compute the highest energy of a population `popl`.
 """
 function maxenergy(popl::Population{PS}) where PS
-    maximum(p -> energy(instantiate(p)), eachparticle(popl))
+    maximum(p -> kinenergy(instantiate(p)), eachparticle(popl))
 end
 
 
@@ -247,7 +247,7 @@ function droplow!(popl, thres=0.0)
     
     prt = popl.particles
     for i in 1:popl.n[]
-        if prt[i].active && energy(prt[i]) < thres
+        if prt[i].active && kinenergy(prt[i]) < thres
             remove_particle!(popl, i)
         end
     end
@@ -265,7 +265,7 @@ function roulette!(f::Function, popl::Population)
     for i in 1:popl.n[]        
         l = LazyRow(popl.particles, i)
         l.active || continue
-        eng = energy(instantiate(l))
+        eng = kinenergy(instantiate(l))
         p = f(eng)
         if rand() < p
             l.w /= p

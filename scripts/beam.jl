@@ -52,11 +52,12 @@ function main(;n_init_particles=1,
     
     # Initialize particles
     K = init_energy
-    v0 = SA[0.0, 10.0, co.c * sqrt(1 - (mc2 / (mc2 + K))^2)]
+    pnorm = Particulator.momentum_norm_from_kin(Electron, K)
+    p0 = SA[0.0, 1e-6 * pnorm, pnorm]
     
     init_particles = map(1:n_init_particles) do _
         x = SA[0.0, 0.0, 0.0]
-        ElectronState(x, v0)
+        ElectronState(x, p0)
     end
 
     # Construct populations
@@ -137,7 +138,7 @@ function plotspec(p; n=1, bins=200)
     plt.matplotlib.pyplot.style.use("granada")
 
     bins = (10 .^ LinRange(log10(50), log10(400), bins))
-    hst = StatsBase.fit(Histogram, energy.(p) ./ (1e3 * co.eV), bins)
+    hst = StatsBase.fit(Histogram, kinenergy.(p) ./ (1e3 * co.eV), bins)
     hst1 = StatsBase.normalize(hst, mode=:density)
     plt.plot(hst1.edges[1][begin:end-1], hst1.weights ./ n)
     plt.xlabel("energy (keV)")

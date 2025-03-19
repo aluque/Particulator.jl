@@ -63,7 +63,8 @@ Set the r field of particle with index `i` using its energy and the safety facto
 function setr!(popl, i)
     l = LazyRow(popl.particles, i)
 
-    eng = energy(l)
+    eng = kinenergy(l)
+
     if eng < popl.energy_cut
         l.r = 0
     else
@@ -146,7 +147,7 @@ Sample one (possibly null) collision.
         $(Expr(:meta, :inline))
         state.r == 0 && return nothing
         
-        eng = energy(state)
+        eng = kinenergy(state)
         eng >= popl.energy_cut || return nothing
         
         pre = presample(colls, state, eng)

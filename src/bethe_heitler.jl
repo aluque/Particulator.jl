@@ -8,18 +8,18 @@ function collide(bh::BetheHeitler, photon::PhotonState{T}, eng) where T
 
     # Deal with the electron
     cosθ = sample_cos_theta(bh, ekin)
+    pnorm = momentum_norm_from_kin(Electron, ekin)
     γ = 1 + ekin / co.electron_mc2
     β = (γ^2 - 1) / γ^2
-    v_e = turn(photon.p, cosθ, ϕ, co.c * β)
+    p_e = turn(photon.p, cosθ, ϕ, pnorm)
 
     # Now the positron
     cosθ = sample_cos_theta(bh, pkin)
-    γ = 1 + pkin / co.electron_mc2
-    β = (γ^2 - 1) / γ^2
-    v_p = turn(photon.p, cosθ, ϕ, co.c * β)
+    pnorm = momentum_norm_from_kin(Positron, pkin)
+    p_p = turn(photon.p, cosθ, ϕ, pnorm)
 
-    electron = ElectronState{T}(photon.x, v_e, photon.w, photon.t)
-    positron = PositronState{T}(photon.x, v_p, photon.w, photon.t)
+    electron = ElectronState{T}(photon.x, p_e, photon.w, photon.t)
+    positron = PositronState{T}(photon.x, p_p, photon.w, photon.t)
     
     return ReplaceParticlePairOutcome(photon, electron, positron)
 end

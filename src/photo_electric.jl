@@ -1,5 +1,5 @@
 #= Photoelectric effect.
-Implemented following GENAT4 and PENELOPE.
+Implemented following GEANT4 and PENELOPE.
 Total cross sections are obtained from the SANDIA data.
 Angular sampling follows PENELOPE.
 =#
@@ -44,9 +44,11 @@ function collide(pe::PhotoElectric, photon::PhotonState{T}, eng) where T
 
     γ = 1 + electron_energy / mc2
     β = sqrt(1 - 1 / γ^2)
-    v = turn(photon.p, cosθ, ϕ, co.c * β)
+    pnorm = momentum_norm_from_kin(Electron, electron_energy)
+    
+    p = turn(photon.p, cosθ, ϕ, pnorm)
 
-    ReplaceParticleOutcome(photon, ElectronState{T}(photon.x, v, photon.w, photon.t))
+    ReplaceParticleOutcome(photon, ElectronState{T}(photon.x, p, photon.w, photon.t))
 end
 
 function totalcs(pe::PhotoElectric, eng)

@@ -17,12 +17,8 @@ function collide(c::Compton, photon::PhotonState{T}, eng) where T
     # Electron momentum from conservation
     pe = photon.p - pg
 
-    pe2 = dot(pe, pe)
-    β = sqrt(pe2 / (pe2 + m2c2))
-    ve = co.c * β * pe / sqrt(pe2)
-    
     photon1  = PhotonState{T}(photon.x, pg, photon.w, photon.t)
-    electron = ElectronState{T}(photon.x, ve, photon.w, photon.t)
+    electron = ElectronState{T}(photon.x, pe, photon.w, photon.t)
 
     return NewParticleOutcome(photon1, electron)
 end

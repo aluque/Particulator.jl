@@ -47,7 +47,7 @@ speed(::Type{Photon}, eng) = co.c
 
 gamma(p::PhotonState) = Inf
 momentum(p::PhotonState) = p.p
-energy(p::PhotonState) = norm(p.p) * co.c
+kinenergy(p::PhotonState) = norm(p.p) * co.c
 
 @inline function advance_free(p::PhotonState{T}, efield, bfield, Δt) where T
     v = (co.c / norm(p.p)) * p.p

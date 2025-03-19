@@ -24,7 +24,7 @@ mass(::Type{SlowElectron}) = co.electron_mass
 mass(::SlowElectron) = co.electron_mass
 charge(p::SlowElectronState) = -co.elementary_charge
 
-energy(p::SlowElectronState) = 0.5 * mass(p) * (p.v[1]^2 + p.v[2]^2 + p.v[3]^2)
+kinenergy(p::SlowElectronState) = 0.5 * mass(p) * (p.v[1]^2 + p.v[2]^2 + p.v[3]^2)
 
 @inline function advance_free_leapfrog(p::SlowElectronState, efield, Δt)
     # Leapfrog integration. Note that x and v are not synchronous.

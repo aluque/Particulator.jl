@@ -79,16 +79,13 @@ function collide(sb::SeltzerBerger, electron::ElectronState{T}, eng) where T
     ϕ = 2π * rand()
     
     # Photon momentum
-    p_ph = turn(electron.v, cosθ, ϕ, photon_p_norm)
+    p_ph = turn(electron.p, cosθ, ϕ, photon_p_norm)
 
     # Electron momentum
     p0 = momentum(electron)
     p_e = p0 - p_ph
-    γ2 = (1 + dot(p_e, p_e) / m2c2)
-    β = sqrt(1 - 1 / γ2)
-    v_e = co.c * β * p_e / norm(p_e)
     
-    NewParticleOutcome(ElectronState{T}(electron.x, v_e, electron.w, electron.t),
+    NewParticleOutcome(ElectronState{T}(electron.x, p_e, electron.w, electron.t),
                        PhotonState{T}(electron.x, p_ph, electron.w, electron.t))
 end
 

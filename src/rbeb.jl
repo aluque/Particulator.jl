@@ -66,27 +66,17 @@ function collide(c::RBEB, electron::ElectronState{T}, eng) where T
     p1 = sqrt(E1^2 + 2 * mc2 * E1) / co.c
     p2 = sqrt(E2^2 + 2 * mc2 * E2) / co.c
 
-    γ1 = 1 + (E1 / mc2)
-    γ2 = 1 + (E2 / mc2)
-
-    vnorm = norm(electron.v)
-    v1norm = p1 / γ1 / co.electron_mass
-    v2norm = p2 / γ2 / co.electron_mass
-    
-    # cosθ1 = (p0^2 + p1^2 - p2^2) / (2 * p0 * p1)
-    # cosθ2 = (p0^2 + p2^2 - p1^2) / (2 * p0 * p2)
-
     # Lehtinen 1999
     cosθ1 = sqrt(E1 * (E0 + 2mc2) / (E0 * (E1 + 2mc2)))    
     cosθ2 = sqrt(E2 * (E0 + 2mc2) / (E0 * (E2 + 2mc2)))
     
     ϕ = 2π * rand()
 
-    v1 = turn(electron.v, cosθ1, ϕ, v1norm)
-    v2 = turn(electron.v, cosθ2, -ϕ, v2norm)
+    p1vec = turn(electron.p, cosθ1, ϕ, p1)
+    p2vec = turn(electron.p, cosθ2, -ϕ, p2)
 
-    NewParticleOutcome(ElectronState{T}(electron.x, v1, electron.w, electron.t),
-                       ElectronState{T}(electron.x, v2, electron.w, electron.t))
+    NewParticleOutcome(ElectronState{T}(electron.x, p1vec, electron.w, electron.t),
+                       ElectronState{T}(electron.x, p2vec, electron.w, electron.t))
 end
 
 

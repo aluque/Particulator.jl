@@ -20,7 +20,7 @@ end
 particle_type(::Type{ZPhotonState{T}}) where T = ZPhoton
 
 # Currently we do not use the energy anywhere
-energy(::ZPhotonState) = nothing
+kinenergy(::ZPhotonState) = nothing
 
 struct PhotoIonization; end
 

@@ -17,7 +17,7 @@ end
 """
 Compute energy loss (aka friction force) due to ionization below Tcut for electrons and positrons.
 """
-function energy_loss(cl::ContinuumLoss, p::ParticleState, eng)
+function energy_loss(cl::ContinuumLoss, s::ParticleState, eng)
     (;nel, I, Tcut) = cl
     mc2 = co.electron_mc2
     r_e = co.r_e
@@ -52,7 +52,7 @@ function energy_loss(cl::ContinuumLoss, p::ParticleState, eng)
     return (2π * r_e^2 * mc2 * nel / β2) * (log((2 * (γ + 1)) / (I / mc2)^2) + F - δ)
 end
 
-energy_loss(cl, p) = energy_loss(cl, p, energy(p))
+energy_loss(cl, s) = energy_loss(cl, s, energy(s))
 
 
 taumax(::PositronState, τ) = τ

@@ -144,6 +144,7 @@ struct WallCallback{P, T, L} <: AbstractCallback
     """
     function WallCallback{P}(coord, v, drop=true) where P
         accum = P[]
+        sizehint!(accum, 10000)
         new{P, typeof(v), typeof(accum)}(coord, v, drop, accum, ReentrantLock())
     end
 end
@@ -154,8 +155,11 @@ function Particulator.onadvance(wcb::WallCallback{P}, old_state::P, new_state::P
     if old_state.x[coord] < v < new_state.x[coord]
         # interpolate
         w = (v - old_state.x[coord]) / (new_state.x[coord] - old_state.x[coord])
-        lock(lck) do
-            push!(accum, lincomb(new_state, old_state, w))
+        #
+        let mid_state = lincomb(new_state, old_state, w)
+            lock(lck) do
+                push!(accum, mid_state)
+            end
         end
         if drop
             @reset new_state.active = false

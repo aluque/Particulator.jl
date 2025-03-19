@@ -39,7 +39,7 @@ abstract type ParticleState{T}; end
 
 Base.eltype(p::ParticleState{T}) where {T} = T
 
-energy(p) = energy(instantiate(p))
+kinenergy(p) = kinenergy(instantiate(p))
 
 """
 Produce a linear combination between two `ParticleState`s, `a` and `b`, where `a` is assigned a weight

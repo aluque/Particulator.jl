@@ -9,7 +9,7 @@ end
 
 function collide(c::RelativisticCoulomb, lepton, energy)
     ϕ = 2π * rand()
-    β = norm(lepton.v) / co.c
+    β = norm(velocity(lepton)) / co.c
 
     a = 1.3413 * c.Z^(-1//3) * a_0
     p = momentum(lepton)
@@ -18,8 +18,8 @@ function collide(c::RelativisticCoulomb, lepton, energy)
     α = co.hbar^2 / (4 * dot(p, p) * a^2)
 
     cosθ = sample_rel_sr(α, β)
-    vnew = turn(lepton.v, cosθ, ϕ)
-    StateChangeOutcome(typeof(lepton)(lepton.x, vnew, lepton.w, lepton.t))
+    pnew = turn(p, cosθ, ϕ)
+    StateChangeOutcome(typeof(lepton)(lepton.x, pnew, lepton.w, lepton.t))
 end
 
 

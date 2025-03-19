@@ -3,7 +3,7 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     Electron, Positron, Photon,
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
     nactives, advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
-    repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
+    repack!, kinenergy, nparticles, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
     AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
     ParticleCountCallback, collision_table_from_processes,
@@ -47,7 +47,7 @@ include("population.jl")
 include("mixed_population.jl")
 include("collision_table.jl")
 include("collisions.jl")
-include("electron.jl")
+include("electron.jl") 
 include("positron.jl")
 include("photon.jl")
 include("relativistic_coulomb.jl")
