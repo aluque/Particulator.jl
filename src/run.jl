@@ -1,6 +1,7 @@
 function run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt=tfinal / 20)
     t = 0.0
     nxt = t
+    isave = 0
     
     while t < tfinal
         advance!(mpopl, efield, bfield, t + dt, callback)
@@ -9,8 +10,10 @@ function run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt=tfinal / 20
         onstep(callback, mpopl, t)
         if !isnothing(output_dt) && t >= nxt
             nxt += output_dt
-            msg = _msg(mpopl, t, 100 * t / tfinal)
+            isave += 1
+            msg = _msg(mpopl, t, 100 * t / tfinal)            
             @info msg
+            onoutput(callback, mpopl, t, isave)
         end
     end
 end

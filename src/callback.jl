@@ -27,12 +27,30 @@ the current state of all particles from each population.
 """
 onstep(::AbstractCallback, mpopl, t=nothing) = nothing
 
+"""
+Callback method called at each output timestep. `mpopl` is a `MultiPopulation` containing
+the current state of all particles from each population.
+"""
+onoutput(::AbstractCallback, mpopl, t=nothing) = nothing
+
 
 """
 A combination of several callbacks, called in order.
 """
 struct CombinedCallback{T<:Tuple} <: AbstractCallback
     tpl::T
+end
+
+function CombinedCallback(c::CombinedCallback, other::Tuple)
+    CombinedCallback((c.tpl..., other...))
+end
+
+function CombinedCallback(c::VoidCallback, other::Tuple)
+    CombinedCallback(other)
+end
+
+function CombinedCallback(c::AbstractCallback, other::Tuple)
+    CombinedCallback((c, other...))
 end
 
 Base.getindex(c::CombinedCallback, i::Int) = c.tpl[i::Int]
@@ -60,6 +78,19 @@ function _onadvance(tpl::Tuple, old_state, new_state, t=nothing)
 end
 
 _onadvance(tpl::Tuple{}, old_state, new_state, t=nothing) = new_state
+
+function onoutput(c::CombinedCallback, args...)
+    _onoutput(c.tpl, args...)
+end
+
+function _onoutput(tpl::Tuple, mpopl, t=nothing, i=nothing)
+    f = first(tpl)
+    onoutput(f, mpopl, t, i)
+    _onoutput(Base.tail(tpl), mpopl, t, i)
+    return nothing
+end
+
+_onoutput(tpl::Tuple{}, mpopl, t=nothing, i=nothing) = nothing
 
 
 
@@ -135,3 +166,21 @@ function Particulator.onadvance(wcb::WallCallback{P}, old_state::P, new_state::P
 end
 
 
+"""
+A callback to save particle numbers.
+"""
+struct ParticleCountCallback <: AbstractCallback
+    p::Vector{Symbol}
+    counts::Vector{Vector{Float64}}
+    
+    function ParticleCountCallback(particles)
+        counts = Vector{Vector{Float64}}()
+        p = copy(particles)
+        return new(p, counts)
+    end
+end
+
+
+function onoutput(pc::ParticleCountCallback, mpopl, t, i)
+    push!(pc.counts, [t; (nparticles(get(mpopl, ParticleType{s})) for s in pc.p)...])           
+end

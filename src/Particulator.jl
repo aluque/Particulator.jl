@@ -6,7 +6,7 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     repack!, energy, nparticles, SeltzerBerger, PhotoElectric,
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
     AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
-    collision_table_from_processes,
+    ParticleCountCallback, collision_table_from_processes,
     HomogeneousField, DoubleLayerField, run!, roulette!
 
 
