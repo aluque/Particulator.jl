@@ -31,7 +31,7 @@ onstep(::AbstractCallback, mpopl, t=nothing) = nothing
 Callback method called at each output timestep. `mpopl` is a `MultiPopulation` containing
 the current state of all particles from each population.
 """
-onoutput(::AbstractCallback, mpopl, t=nothing) = nothing
+onoutput(::AbstractCallback, mpopl, t=nothing, i=nothing) = nothing
 
 
 """
