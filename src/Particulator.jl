@@ -7,7 +7,8 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
     AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
     ParticleCountCallback, collision_table_from_processes,
-    HomogeneousField, DoubleLayerField, run!, roulette!
+    HomogeneousField, DoubleLayerField, run!, roulette!, ElectromagneticField, ContinuumLoss, RK2Pusher,
+    CombinedForcing, RestrictedForcing
 
 
 using Base.Threads: Atomic, @threads, atomic_add!
@@ -50,6 +51,7 @@ include("collisions.jl")
 include("electron.jl") 
 include("positron.jl")
 include("photon.jl")
+include("pusher.jl")
 include("relativistic_coulomb.jl")
 include("rbeb.jl")
 include("continuum.jl")

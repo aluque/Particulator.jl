@@ -22,7 +22,6 @@ struct PositronState{T} <: ParticleState{T}
 end
 
 
-
 particle_type(::Type{PositronState{T}}) where T = Positron
 particle_type(::PositronState) = Positron
 new_particle(::Type{Positron}, x, v) = PositronState(x, v, 1.0, nextcoll(), true)

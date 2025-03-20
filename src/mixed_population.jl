@@ -35,14 +35,14 @@ end
 init!(mpopl::MultiPopulation, tpl::NamedTuple{()}) = nothing
 
 
-function advance!(mpopl, efield, bfield, tfinal, callback=VoidCallback())
+function advance!(mpopl, pusher, tfinal, callback=VoidCallback())
     advance_init!(mpopl.index)
     
     # n is the total number particles created during this time-step. We iterate until the number is
     # zero, each time passing only through the particles that have not been updated yet.
     local n = 1
     while n > 0
-        n = advance1!(mpopl.index, mpopl, efield, bfield, tfinal, callback)
+        n = advance1!(mpopl.index, mpopl, pusher, tfinal, callback)
     end
 end
 
@@ -53,7 +53,7 @@ advance1!(tpl::NamedTuple, args...) = advance1!(tuple(tpl...), args...)
 Advance the particles in the population performing, if needed, intermediate
 collisions.
 """
-function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, callback=VoidCallback())::Int
+function advance1!(tpl::Tuple, mpopl, pusher, tfinal, callback=VoidCallback())::Int
     popl = first(tpl)
     (;collisions, iup) = popl
     ilast = popl.n[]
@@ -74,7 +74,7 @@ function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, callback=VoidCallb
                 l.s -= Δt * l.r
             end
             state = instantiate(l)
-            new_state = advance_free(state, efield, bfield, Δt)
+            new_state = advance_particle(pusher, state, Δt)
             new_state = onadvance(callback, state, new_state, l.t + Δt)
             
             popl.particles[i] = new_state
@@ -89,7 +89,7 @@ function advance1!(tpl::Tuple, mpopl, efield, bfield, tfinal, callback=VoidCallb
     n = ilast - iup[] + 1
     iup[] = ilast + 1
     
-    return n + advance1!(Base.tail(tpl), mpopl, efield, bfield, tfinal, callback)
+    return n + advance1!(Base.tail(tpl), mpopl, pusher, tfinal, callback)
 end
 
 advance1!(tpl::Tuple{}, mpopl, efield, bfield, tfinal, callback=VoidCallback())::Int = 0

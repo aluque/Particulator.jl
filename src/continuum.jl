@@ -3,7 +3,7 @@
 ## See GEANT4 Phys. Ref. Manual 11.3, chap. 11.
 ##
 
-struct ContinuumLoss{T}
+struct ContinuumLoss{T} <: AbstractForcing
     # Electron density in the material
     nel::T
 
@@ -13,6 +13,14 @@ struct ContinuumLoss{T}
     # Min energy cut
     Tcut::T
 end
+
+function force(cl::ContinuumLoss, s::Union{ElectronState, PositronState})
+    f = energy_loss(cl, s)
+    return s.p * (-f / norm(s.p))
+end
+
+force(cl::ContinuumLoss, s::PhotonState) = zero(s.p)
+
 
 """
 Compute energy loss (aka friction force) due to ionization below Tcut for electrons and positrons.

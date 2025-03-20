@@ -1,10 +1,10 @@
-function run!(mpopl, efield, bfield, tfinal, dt, callback; output_dt=tfinal / 20)
+function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20)
     t = 0.0
     nxt = t
     isave = 0
     
     while t < tfinal
-        advance!(mpopl, efield, bfield, t + dt, callback)
+        advance!(mpopl, pusher, t + dt, callback)
         foreach(droplow!, mpopl)
         t += dt
         onstep(callback, mpopl, t)

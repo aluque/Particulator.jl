@@ -1,8 +1,5 @@
 #=
 Bhaba scattering (ionization) for positrons.
-
-Note: Currently I am not using continuous slowing-down (CSDA) so one has to set a low tcut to include
-all energy losses.
 =#
 struct Bhaba{T}
     Z::Int
