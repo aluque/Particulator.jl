@@ -37,6 +37,10 @@ charge(::PositronState) = +1
 momentum_from_v(::Type{Positron}, v) = co.electron_mass * v / sqrt(1 - abs(v)^2 / co.c^2)
 momentum_norm_from_kin(::Type{Positron}, kin) = sqrt((kin + co.electron_mc2)^2 - co.electron_mc2^2) / co.c
 
+kinenergy(s::PositronState) = (sqrt(co.electron_mc2^2 + co.c^2 * dot(s.p, s.p)) - co.electron_mc2)
+gamma(s::PositronState) = sqrt(1 + co.c^2 * dot(s.p, s.p) / co.electron_mc2^2)
+momentum(s::PositronState) = s.p
+velocity(s::PositronState) = s.p * (1 / (co.electron_mass * gamma(s)))
 
 
 # advance_free_boris is defined in electron.jl and it works also for positrons.
