@@ -25,20 +25,20 @@ force(cl::ContinuumLoss, s::PhotonState) = zero(s.p)
 """
 Compute energy loss (aka friction force) due to ionization below Tcut for electrons and positrons.
 """
-function energy_loss(cl::ContinuumLoss, s::ParticleState, eng)
+function energy_loss(cl::ContinuumLoss, s, eng)
     (;nel, I, Tcut) = cl
     mc2 = co.electron_mc2
     r_e = co.r_e
     
     τ = eng / mc2
     τc = Tcut / mc2
-    τmax = taumax(p, τ)
+    τmax = taumax(s, τ)
     γ = 1 + τ
     y = 1 / (γ + 1)
     β2 = 1 - 1 / γ^2    
     τup = min(τc, τmax)
 
-    F = _F(p, τ, τup, β2)
+    F = _F(s, τ, τup, β2)
 
     # Compute δ
     x = log(γ^2 * β2) / log(10) / 2
@@ -60,24 +60,30 @@ function energy_loss(cl::ContinuumLoss, s::ParticleState, eng)
     return (2π * r_e^2 * mc2 * nel / β2) * (log((2 * (γ + 1)) / (I / mc2)^2) + F - δ)
 end
 
-energy_loss(cl, s) = energy_loss(cl, s, energy(s))
+energy_loss(cl, s) = energy_loss(cl, s, kinenergy(s))
 
 
-taumax(::PositronState, τ) = τ
-taumax(::ElectronState, τ) = τ / 2
+# Defined from Type{...} to avoid having to instantiate a ParticleState
+taumax(::Type{<:PositronState}, τ) = τ
+taumax(::Type{<:ElectronState}, τ) = τ / 2
+taumax(s::ParticleState, τ) = taumax(typeof(s), τ)
 
-function _F(::PositronState, τ, τup, β2)
+
+function _F(::Type{<:PositronState}, τ, τup, β2)
     y = 1 / (2 + τ)
     return (log(τ * τup)
             - (τup^2 / τ) * (τ * 2τup - 3τup^2 * y / 2 - (τup - τup^3 / 3) * y^2
                              - (τup^2 / 2 - τ * τup^3 / 3 + τup^4 / 4) * y^3))
 end
 
-function _F(::ElectronState, τ, τup, β2)
+function _F(::Type{<:ElectronState}, τ, τup, β2)
     γ = 1 + τ
     return  (-1 - β2 + log((τ - τup) * τup) + τ / (τ - τup)
              + (τup^2 / 2 + (2τ + 1) * log(1 - τup / τ)) / γ^2)
 end
+
+_F(s::ParticleState, τ, τup, β2) = _F(typeof(s), τ, τup, β2)
+
 
 function x0x1(C)
     if C < 10
