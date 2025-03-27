@@ -25,8 +25,8 @@ function collide(b::Bhaba, pos::PositronState{T}, eng) where T
     
     ϕ = 2π * rand()
 
-    p1vec = turn(pos.v, cosθ1,  ϕ, p1)
-    p2vect = turn(pos.v, cosθ2, -ϕ, p2)
+    p1vec = turn(pos.p, cosθ1,  ϕ, p1)
+    p2vec = turn(pos.p, cosθ2, -ϕ, p2)
 
     NewParticleOutcome(PositronState{T}(pos.x, p1vec, pos.w, pos.t),
                        ElectronState{T}(pos.x, p2vec, pos.w, pos.t))
