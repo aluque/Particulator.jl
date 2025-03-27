@@ -32,19 +32,21 @@ function collide(m::Moller, el::ElectronState{T}, eng) where T
     p1vec = turn(el.p, cosθ1,  ϕ, p1)
     p2vec = turn(el.p, cosθ2, -ϕ, p2)
 
-    NewParticleOutcome(ElectronState{T}(pos.x, p1vec, pos.w, pos.t),
-                       ElectronState{T}(pos.x, p2vec, pos.w, pos.t))
+    NewParticleOutcome(ElectronState{T}(el.x, p1vec, el.w, el.t),
+                       ElectronState{T}(el.x, p2vec, el.w, el.t))
 end
 
 
 function totalcs(m::Moller, eng)
     (;Z, tcut) = m
     
+    x = tcut / eng
+    x > 1 && return zero(eng)
+
     mc2 = co.electron_mc2
     γ = 1 + eng / mc2
 
     β2 = (γ^2 - 1) / γ^2
-    x = tcut / eng
     
     A = (((γ - 1)^2 / γ^2) * (1/2 - x)
          + 1 / x
