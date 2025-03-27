@@ -204,4 +204,21 @@ function onoutput(pc::ParticleCountCallback, mpopl, t, i)
 end
 
 
+"""
+A callback for roussian roulette.
+"""
+struct RouletteCallback <: AbstractCallback
+    m::Int
+end
+
+
+function onstep(c::RouletteCallback, mpopl, t=nothing)
+    for (s, popl) in pairs(mpopl)
+        n = nactives(popl)
+
+        if n > c.m
+            roulette!(c.m / n, popl)
+        end
+        repack!(popl)
+    end
 end
