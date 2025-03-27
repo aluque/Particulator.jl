@@ -22,6 +22,41 @@ end
 force(cl::ContinuumLoss, s::PhotonState) = zero(s.p)
 
 
+struct ChebContinuumLoss{N, T} <: AbstractForcing
+    bints::BinaryIntervals{T}
+    ec::Matrix{T}
+    pc::Matrix{T}
+end
+
+"""
+Build a ChebContinuumLoss from `cl` that reaches up to 2^k times `Tcut` where 2^k * Tcut is at least
+Tmax.  This puts the dicontinuities exactly at tcut and 2 * tcut. `n` is the order of Chebyshev
+expansion.
+"""
+function ChebContinuumLoss(cl::ContinuumLoss, Tmax, n)
+    k = ceil(Int, log2(Tmax / cl.Tcut))
+    bints = BinaryIntervals(k, 2^k * cl.Tcut)
+    ec = chebfit(x -> energy_loss(cl, ElectronState, x), bints, n)
+    pc = chebfit(x -> energy_loss(cl, PositronState, x), bints, n)    
+
+    return ChebContinuumLoss{n, typeof(Tmax)}(bints, ec, pc)
+end
+
+function force(cl::ChebContinuumLoss{N}, s::ElectronState) where N
+    x = kinenergy(s)
+    f = chebeval(x, cl.bints, cl.ec, Val{N}())
+    return s.p * (-f / norm(s.p))
+end
+
+function force(cl::ChebContinuumLoss{N}, s::PositronState) where N
+    x = kinenergy(s)
+    f = chebeval(x, cl.bints, cl.pc, Val{N}())
+    return s.p * (-f / norm(s.p))
+end
+
+force(cl::ChebContinuumLoss, s::PhotonState) = zero(s.p)
+
+
 """
 Compute energy loss (aka friction force) due to ionization below Tcut for electrons and positrons.
 """
