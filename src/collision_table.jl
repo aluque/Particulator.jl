@@ -123,6 +123,9 @@ function collision_table_from_processes(processes, particle, Fdt;
     nprocs = length(processes)
 
     b = BinaryIntervals{Float64}(nintervals, max_energy)
+
+    # We order the axes of the matrix of coefficient as order, process, interval. This should optimize
+    # the chache locality.
     a = Array{Float64, 3}(undef, (order, nprocs, nintervals + 1))
 
     for j in 1:nprocs

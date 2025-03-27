@@ -8,7 +8,7 @@ function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20)
         foreach(droplow!, mpopl)
         t += dt
         onstep(callback, mpopl, t)
-        if !isnothing(output_dt) && t >= nxt
+        if !isnothing(output_dt) && t >= nxt            
             nxt += output_dt
             isave += 1
             msg = _msg(mpopl, t, 100 * t / tfinal)            
