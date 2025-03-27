@@ -118,6 +118,12 @@ function chebeval(x::T, b::BinaryIntervals{T}, a, pre=nothing) where T
     return sum(j -> a[j, i + 1] * t[j], axes(a, 1))
 end
 
+#Give N as compile-time parameter.
+function chebeval(x::T, b::BinaryIntervals{T}, a, v::Val{N}) where {T, N}
+    pre = precheb(x, b, Val{N}())
+    return chebeval(x, b, a, pre)
+end
+
 function precheb(x::T, b::BinaryIntervals{T}, v::Val{N}) where {T, N}
     (;k, xmax) = b
     x1 = x / xmax
