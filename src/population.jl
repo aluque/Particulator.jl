@@ -190,7 +190,7 @@ function spread(popl::Population{PS}) where PS
     end
     xmean /= tot
     x2mean /= tot
-    return (xmean, sqrt(x2mean - dot(xmean, xmean)))
+    return (xmean, sqrt(abs(x2mean - dot(xmean, xmean))))
 end
 
 
