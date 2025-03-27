@@ -51,7 +51,7 @@ momentum_from_v(::Type{Electron}, v) = co.electron_mass * v / sqrt(1 - norm(v)^2
 momentum_norm_from_kin(::Type{Electron}, kin) = sqrt((kin + co.electron_mc2)^2 - co.electron_mc2^2) / co.c
 # kinetic energy
 kinenergy(s::ElectronState) = (sqrt(co.electron_mc2^2 + co.c^2 * dot(s.p, s.p)) - co.electron_mc2)
-gamma(s::ElectronState) = 1 + co.c^2 * dot(s.p, s.p) / co.electron_mc2^2
+gamma(s::ElectronState) = sqrt(1 + co.c^2 * dot(s.p, s.p) / co.electron_mc2^2)
 momentum(s::ElectronState) = s.p
 velocity(s::ElectronState) = s.p * (1 / (co.electron_mass * gamma(s)))
 
