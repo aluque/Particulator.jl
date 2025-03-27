@@ -4,11 +4,12 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     NullCollision, ElectronState, PositronState, PhotonState, Population, ORBITALS,
     nactives, advance!, remove_particle!, eachactive, init!, ChebyshevCollisionTable,
     repack!, kinenergy, nparticles, SeltzerBerger, PhotoElectric,
-    BetheHeitler, PositronAnihilation, Compton, Bhaba, BinaryIntervals, chebfit, speed,
-    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
+    BetheHeitler, PositronAnihilation, Compton, Moller, Bhaba, BinaryIntervals, chebfit, speed,
+    AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback, RouletteCallback,
     ParticleCountCallback, collision_table_from_processes,
-    HomogeneousField, DoubleLayerField, run!, roulette!, ElectromagneticField, ContinuumLoss, RK2Pusher,
-    CombinedForcing, RestrictedForcing
+    HomogeneousField, DoubleLayerField, ConfinedDoubleLayerField, run!, roulette!,
+    ElectromagneticField, ContinuumLoss, ChebContinuumLoss, RK2Pusher, CombinedForcing,
+    RestrictedForcing
 
 
 using Base.Threads: Atomic, @threads, atomic_add!
