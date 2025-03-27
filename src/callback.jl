@@ -186,5 +186,8 @@ end
 
 
 function onoutput(pc::ParticleCountCallback, mpopl, t, i)
-    push!(pc.counts, [t; (nparticles(get(mpopl, ParticleType{s})) for s in pc.p)...])           
+    push!(pc.counts, [t; (weight(get(mpopl, ParticleType{s})) for s in pc.p)...])           
+end
+
+
 end
