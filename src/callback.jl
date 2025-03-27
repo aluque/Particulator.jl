@@ -93,6 +93,20 @@ end
 _onoutput(tpl::Tuple{}, mpopl, t=nothing, i=nothing) = nothing
 
 
+function onstep(c::CombinedCallback, args...)
+    _onstep(c.tpl, args...)
+end
+
+function _onstep(tpl::Tuple, args...)
+    f = first(tpl)
+    onstep(f, args...)
+    _onstep(Base.tail(tpl), args...)
+    return nothing
+end
+
+_onstep(tpl::Tuple{}, args...) = nothing
+
+
 
 #
 # Some useful callbacks
