@@ -45,6 +45,7 @@ charge(::PhotonState) = 0
 
 speed(::Type{Photon}, eng) = co.c
 velocity(s::PhotonState) = s.p * (co.c / norm(s.p))
+momentum_norm_from_kin(::Type{Photon}, kin) = kin / co.c
 
 gamma(s::PhotonState) = Inf
 momentum(s::PhotonState) = s.p
