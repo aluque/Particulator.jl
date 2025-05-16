@@ -2,7 +2,11 @@ struct Compton
     Z::Int
 end
 
-function collide(c::Compton, photon::PhotonState{T}, eng) where T
+struct KleinNishinaCompton
+    Z::Int
+end
+
+function collide(c::Union{Compton, KleinNishinaCompton}, photon::PhotonState{T}, eng) where T
     mc2 = co.electron_mc2
     m2c2 = co.electron_mc^2
 
@@ -27,7 +31,7 @@ end
 """
 Klein-Nishina cross-section following L&L 4, sect. 86.
 """
-function klein_nishina(c::Compton, eng)
+function totalcs(c::KleinNishinaCompton, eng)
     (;Z) = c
     mc2 = co.electron_mc2
 
@@ -112,7 +116,7 @@ Sample the energy of the secondaries and the scattering angle in a Compton colli
 Returns the energy of the scattered photon and the cosine of the angle of the scattered photon.
 Based on the GEANT4 Phys. Ref. Manual v. 11.3 p. 41 and G4KleinNishinaCompton.cc.
 """
-function sample_secondary_energy_and_cos_theta(::Compton, eng)
+function sample_secondary_energy_and_cos_theta(::Union{Compton, KleinNishinaCompton}, eng)
     mc2 = co.electron_mc2
     ϵ0 = mc2 / (mc2 + 2 * eng)
     α1 = -log(ϵ0)
