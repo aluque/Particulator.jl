@@ -66,6 +66,10 @@ end
 
 Base.length(iter::ActiveParticleIterator) = nactives(iter.p)
 
+function Base.empty!(popl::Population)
+    popl.n[] = 0
+end
+    
 isactive(popl::Population, i::Int) = popl.particles.active[i]
 
 particle_type(popl::Population{PS}) where {PS} = particle_type(PS)
