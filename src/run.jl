@@ -1,4 +1,4 @@
-function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20)
+function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20, verbosity=1)
     t = 0.0
     nxt = t
     isave = 0
@@ -12,9 +12,18 @@ function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20)
         if !isnothing(output_dt) && t >= nxt            
             nxt += output_dt
             isave += 1
-            msg = _msg(mpopl, t, 100 * t / tfinal)            
-            @info msg
+            if verbosity > 0
+                msg = _msg(mpopl, t, 100 * t / tfinal)
+                @info msg
+            end
             onoutput(callback, mpopl, t, isave)
+        end
+
+        if !cont
+            if verbosity > 0
+                @info "Early stop due to onstep() callback"
+            end
+            break
         end
     end
 end
