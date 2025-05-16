@@ -169,7 +169,7 @@ Sample one (possibly null) collision.
                   ν = rate(colls, $j, pre)
                   if ν > ξ
                       outcome = collide(colls.proc[$j], state, eng)
-                      outcome = oncollision(callback, colls.proc[$j], outcome, t)
+                      outcome = oncollision(callback, colls.proc[$j], state, outcome, t)
                       apply!(mpopl, outcome, i)
 
                       return
@@ -189,7 +189,7 @@ Sample one (possibly null) collision.
               # This is a null collision. Only takes effect if we somehow want to track them or
               # do something weird. Otherwise all this should fold to a nop.
               outcome = collide(NullCollision(), state, eng)
-              oncollision(callback, NullCollision(), outcome)
+              oncollision(callback, NullCollision(), state, outcome, t)
               apply!(mpopl, outcome, i)
 
               return nothing

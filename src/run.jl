@@ -7,7 +7,8 @@ function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20)
         advance!(mpopl, pusher, t + dt, callback)
         foreach(droplow!, mpopl)
         t += dt
-        onstep(callback, mpopl, t)
+        cont = onstep(callback, mpopl, t)
+
         if !isnothing(output_dt) && t >= nxt            
             nxt += output_dt
             isave += 1

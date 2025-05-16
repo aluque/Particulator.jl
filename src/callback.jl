@@ -9,10 +9,10 @@ abstract type AbstractCallback end
 struct VoidCallback <: AbstractCallback end
 
 """
-Callback method called whenever there is a a `collision` happens with `outcome`.
+Callback method called whenever there a `collision` of a particle at `state` happens with `outcome`.
 If another `outcome` is returned, it will be used instead of the original.
 """
-oncollision(::AbstractCallback, collision, outcome, t=nothing) = outcome
+oncollision(::AbstractCallback, collision, state, outcome, t=nothing) = outcome
 
 """
 Callback method called whenever a particle is advanced. `old_state`is the particle state before
@@ -23,9 +23,10 @@ onadvance(::AbstractCallback, old_state, new_state, t=nothing) = new_state
 
 """
 Callback method called after each timestep. `mpopl` is a `MultiPopulation` containing
-the current state of all particles from each population.
+the current state of all particles from each population. If return is false, the simulation will be
+terminated.
 """
-onstep(::AbstractCallback, mpopl, t=nothing) = nothing
+onstep(::AbstractCallback, mpopl, t=nothing) = true
 
 """
 Callback method called at each output timestep. `mpopl` is a `MultiPopulation` containing
@@ -59,13 +60,13 @@ function oncollision(c::CombinedCallback, args...)
     _oncollision(c.tpl, args...)
 end
 
-function _oncollision(tpl::Tuple, collision, outcome, t=nothing)
+function _oncollision(tpl::Tuple, collision, state, outcome, t=nothing)
     f = first(tpl)
-    outcome = oncollision(f, collision, outcome, t)
-    return _oncollision(Base.tail(tpl), collision, outcome, t)
+    outcome = oncollision(f, collision, state, outcome, t)
+    return _oncollision(Base.tail(tpl), collision, state, outcome, t)
 end
 
-_oncollision(tpl::Tuple{}, collision, outcome, t=nothing) = outcome
+_oncollision(tpl::Tuple{}, collision, state, outcome, t=nothing) = outcome
 
 function onadvance(c::CombinedCallback, args...)
     _onadvance(c.tpl, args...)
@@ -99,12 +100,12 @@ end
 
 function _onstep(tpl::Tuple, args...)
     f = first(tpl)
-    onstep(f, args...)
-    _onstep(Base.tail(tpl), args...)
-    return nothing
+    r1 = onstep(f, args...)
+    r2 = _onstep(Base.tail(tpl), args...)
+    return r1 && r2
 end
 
-_onstep(tpl::Tuple{}, args...) = nothing
+_onstep(tpl::Tuple{}, args...) = true
 
 
 
@@ -119,8 +120,7 @@ struct CollisionCounter <: AbstractCallback
     CollisionCounter() = new(Dict{Type, Int}())
 end
 
-function oncollision(cc::CollisionCounter, collision, outcome, t)
-    @info "Collision at t=$t"
+function oncollision(cc::CollisionCounter, collision, state, outcome, t)
     s = typeof(collision)
     if haskey(cc.d, s)
         cc.d[s][] += 1
@@ -205,7 +205,7 @@ end
 
 
 """
-A callback for roussian roulette.
+A callback for russian roulette.
 """
 struct RouletteCallback <: AbstractCallback
     m::Int
@@ -221,4 +221,20 @@ function onstep(c::RouletteCallback, mpopl, t=nothing)
         end
         repack!(popl)
     end
+
+    return true
+end
+
+
+"""
+A callback for early termination once the (unweighted) population of a species reaches a threshold.
+"""
+struct PopulationTargetCallback{S} <: AbstractCallback
+    n::Int
+end
+
+
+function onstep(c::PopulationTargetCallback{S}, mpopl, t=nothing) where S
+    popl = get(mpopl, ParticleType{S})
+    return nactives(popl) < c.n
 end
