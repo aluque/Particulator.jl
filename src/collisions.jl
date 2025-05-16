@@ -74,7 +74,7 @@ function setr!(popl, i)
 end
 
 """
-   appply!(population, outcome, i)
+   apply!(population, outcome, i)
 
 Apply a `CollisionOutcome` to a population `population`.  `i` is the index
 of the colliding particle, which is needed if it experiences a change.
