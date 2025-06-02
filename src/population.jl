@@ -284,3 +284,29 @@ Apply Russian roulette with a constant probability of dropping a particle.
 """
 roulette!(f::Number, popl::Population) = roulette!(_ -> f, popl)
 
+
+"""
+Apply splitting to the population. `f` is a function that receives the
+particle energy and returns the mean number of new particles that will be split from it.
+"""
+function split!(f::Function, popl::Population)
+    n = 0
+    for i in 1:popl.n[]        
+        l = LazyRow(popl.particles, i)
+        l.active || continue
+        p = f(instantiate(l))
+        l.w /= (1 + p)
+
+        state = instantiate(l)
+        eng = kinenergy(state)
+        for i in 1:rand(Poisson(p))
+            add_particle!(popl, state)
+        end
+    end
+end
+
+"""
+Apply Russian roulette with a constant probability of dropping a particle.
+"""
+split!(f::Number, popl::Population) = split!(_ -> f, popl)
+

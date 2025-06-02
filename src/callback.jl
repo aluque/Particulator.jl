@@ -225,6 +225,27 @@ function onstep(c::RouletteCallback, mpopl, t=nothing)
     return true
 end
 
+"""
+A callback for particle splitting.
+"""
+struct SplitCallback{S} <: AbstractCallback
+    m::Int
+    min_frac::Float64
+end
+
+
+function onstep(c::SplitCallback{S}, mpopl, t=nothing) where S
+    popl = get(mpopl, ParticleType{S})
+    n = nactives(popl)
+    if n < c.m * c.min_frac
+        split!(c.m / n - 1, popl)
+    end
+    
+    repack!(popl)
+
+    return true
+end
+
 
 """
 A callback for early termination once the (unweighted) population of a species reaches a threshold.
