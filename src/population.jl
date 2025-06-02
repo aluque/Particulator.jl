@@ -130,7 +130,7 @@ Compute the total weight of a population `popl`.
 function weight(popl::Population{PS}) where PS
     T = _particle_state_type_param(PS)
     weight = zero(T)
-    for p in eachparticle(popl)
+    for p in eachactive(popl)
         if p.active
             weight += p.w
         end
