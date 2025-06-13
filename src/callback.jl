@@ -252,10 +252,18 @@ A callback for early termination once the (unweighted) population of a species r
 """
 struct PopulationTargetCallback{S} <: AbstractCallback
     n::Int
+    ismax::Bool
 end
 
+PopulationTargetCallback{S}(n) where S = PopulationTargetCallback{S}(n, true)
 
 function onstep(c::PopulationTargetCallback{S}, mpopl, t=nothing) where S
     popl = get(mpopl, ParticleType{S})
-    return nactives(popl) < c.n
+    if c.ismax
+        return nactives(popl) < c.n
+    else
+        return nactives(popl) > c.n
+    end
 end
+
+
