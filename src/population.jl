@@ -199,6 +199,30 @@ end
 
 
 """
+Compute the variances in location of a population `popl`.
+"""
+function posvar(popl::Population{PS}) where PS
+    T = _particle_state_type_param(PS)
+
+    xsum = @SVector zeros(T, 3)
+    x2sum = @SVector zeros(T, 3)
+    tot = zero(T)
+    
+    nparts = 0
+    for p in eachparticle(popl)
+        if p.active
+            xsum += p.w * p.x
+            x2sum += p.w .* p.x .* p.x
+            tot += p.w
+        end
+    end
+    x2sum ./= tot
+    xsum ./= tot
+
+    return x2sum .- xsum .^ 2
+end
+
+"""
 Reorders the particles in the population `popl` to have all active particle 
 at the initial positions in the list.
 """
