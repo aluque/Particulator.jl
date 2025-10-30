@@ -12,7 +12,7 @@ export LogLinRange, MultiPopulation, RelativisticCoulomb, totalcs, CollisionTabl
     AbstractCallback, CombinedCallback, CollisionCounter, WallCallback, VoidCallback,
     RouletteCallback, SplitCallback,
     ParticleCountCallback, PopulationTargetCallback, collision_table_from_processes,
-    HomogeneousField, DoubleLayerField, ConfinedDoubleLayerField, run!, roulette!,
+    HomogeneousField, DoubleLayerField, StepField, ConfinedDoubleLayerField, run!, roulette!,
     ElectromagneticField, ContinuumLoss, ChebContinuumLoss, RK2Pusher, RestrictedPusher, NullPusher,
     NullForcing, CombinedForcing,
     RestrictedForcing

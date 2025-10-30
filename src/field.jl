@@ -17,6 +17,18 @@ end
 
 
 """
+A field with a step at `z` with a value `v1` below `z` and `v2` above.
+"""
+struct StepField{T}
+    z::T
+    v1::SVector{3, T}
+    v2::SVector{3, T}
+end
+
+(f::StepField)(x, t) = x[3] < f.z ? f.v1 : f.v2
+
+
+"""
 An electric field with a close form that approximate the electric field of a double layer
 but is confined on x and y.
 """
