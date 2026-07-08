@@ -48,7 +48,7 @@ velocity(s::PositronState) = s.p * (1 / (co.electron_mass * gamma(s)))
 
 function lincomb(a::PositronState{T}, b::PositronState{T}, w::Number) where T
     PositronState{T}(a.x * w + b.x * (1 - w),
-                     a.v * w + b.v * (1 - w),
+                     a.p * w + b.p * (1 - w),
                      a.w * w + b.w * (1 - w),
                      a.t * w + b.t * (1 - w))
 end
