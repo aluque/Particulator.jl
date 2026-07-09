@@ -47,3 +47,12 @@ Produce a linear combination between two `ParticleState`s, `a` and `b`, where `a
 """
 function lincomb(a::ParticleState{T}, b::ParticleState{T}, w::Number) where T
 end
+
+"""
+Remove a particle from the pupulation because its energy as dropped below a threshold.
+The reason that we go through this hook is that some particle may produce an effect when they are
+dropped so we implement this as a collision. For example: positron anihilate instantaneously when
+dropped, emitting a pair of photons.
+"""
+drop(s::ParticleState) = RemoveParticleOutcome(s)
+

@@ -110,3 +110,30 @@ function advance_init!(tpl::Tuple)
 end
 
 advance_init!(tpl::Tuple{}) = nothing
+
+
+"""
+Drop low-energy particles from each of the populations. The reason that this cannot be implemented
+independently for each particle type is that in some cases we want the dropping of one particle
+to have an effect on other populations. For example the dropping of a positron creates two
+counter-propagating 511 keV photons.
+"""
+function droplow!(mpopl, thres=nothing)
+    foreach(popl -> droplow!(popl, mpopl, thres), mpopl)
+end
+
+function droplow!(popl, mpopl, thres)
+    thres = isnothing(thres) ? popl.energy_cut : thres
+    
+    prt = popl.particles
+    for i in 1:popl.n[]
+        if prt[i].active && kinenergy(prt[i]) < thres
+            outcome = drop(instantiate(prt[i]))
+            apply!(mpopl, outcome, i)
+        end
+    end
+
+    repack!(popl)
+end
+
+

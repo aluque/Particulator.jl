@@ -52,3 +52,14 @@ function lincomb(a::PositronState{T}, b::PositronState{T}, w::Number) where T
                      a.w * w + b.w * (1 - w),
                      a.t * w + b.t * (1 - w))
 end
+
+
+# Positrons are special because as they drop below the energy cut they still have the effect
+# of emitting a pair of photons.
+function drop(s::PositronState)
+    n = randsphere()
+    p0 = momentum_norm_from_kin(Photon, mass(Electron) * co.c^2)
+    return ReplaceParticlePairOutcome(s,
+                                      PhotonState(s.x,  p0 * n, s.w, s.t),
+                                      PhotonState(s.x, -p0 * n, s.w, s.t))    
+end

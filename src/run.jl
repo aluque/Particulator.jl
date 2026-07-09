@@ -5,7 +5,7 @@ function run!(mpopl, pusher, tfinal, dt, callback; output_dt=tfinal / 20, verbos
     
     while t < tfinal
         advance!(mpopl, pusher, t + dt, callback)
-        foreach(droplow!, mpopl)
+        droplow!(mpopl)
         t += dt
         cont = onstep(callback, mpopl, t)
 
