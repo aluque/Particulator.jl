@@ -15,10 +15,10 @@ struct PositronState{T} <: ParticleState{T}
 
     active::Bool
 
-    PositronState{T}(x::SVector{3, T}, v::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
-                     r::T=0.0, active=true) where T = new{T}(x, v, w, t, s, r, active)
-    PositronState(x::SVector{3, T}, v::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
-                  r::T=0.0, active=true) where T = new{T}(x, v, w, t, s, r, active)
+    PositronState{T}(x::SVector{3, T}, p::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
+                     r::T=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
+    PositronState(x::SVector{3, T}, p::SVector{3, T}, w::T=1.0, t::T=0.0, s::T=nextcoll(),
+                  r::T=0.0, active=true) where T = new{T}(x, p, w, t, s, r, active)
 end
 
 
