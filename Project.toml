@@ -21,7 +21,7 @@ StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
 
 [compat]
 Accessors = "0.1.41"
-BSplineKit = "0.17.7"
+BSplineKit = "0.17.7, 0.19"
 DelimitedFiles = "1.9.1"
 Distributions = "0.25.116"
 DocStringExtensions = "0.9.3"
